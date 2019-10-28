@@ -1,5 +1,6 @@
 package com.runicrealms.plugin;
 
+import com.runicrealms.plugin.command.BankCMD;
 import com.runicrealms.plugin.event.ClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 

@@ -11,7 +11,6 @@ import java.util.Objects;
 
 public class Util {
 
-    //private static final int PAGE_BASE_COST = 64;
     private static final int MAX_PAGES = 5;
 
     public static ItemStack menuItem(Material material, String name, String lore) {
@@ -28,10 +27,6 @@ public class Util {
         item.setItemMeta(meta);
         return item;
     }
-
-//    public static int getPageBaseCost() {
-//        return PAGE_BASE_COST;
-//    }
 
     public static int getMaxPages() {
         return MAX_PAGES;

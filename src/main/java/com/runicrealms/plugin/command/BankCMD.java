@@ -1,4 +1,4 @@
-package com.runicrealms.plugin;
+package com.runicrealms.plugin.command;
 
 import com.runicrealms.plugin.gui.BankGUI;
 import com.runicrealms.plugin.util.FileUtil;
@@ -27,10 +27,8 @@ public class BankCMD implements CommandExecutor {
     }
 
     private void retrieveDataFile(CommandSender sender) {
-        //if (/*file doesnt exist*/) {
         File playerFile = FileUtil.getPlayerFile(((Player) sender).getUniqueId());
         FileConfiguration fileConfig = YamlConfiguration.loadConfiguration(playerFile);
-        // save data file
         try {
             fileConfig.save(playerFile);
         } catch (IOException ex) {

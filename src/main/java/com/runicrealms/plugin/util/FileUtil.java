@@ -3,6 +3,7 @@ package com.runicrealms.plugin.util;
 import com.runicrealms.plugin.RunicBank;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,5 +27,15 @@ public class FileUtil {
             }
         }
         return file;
+    }
+
+    public static FileConfiguration getPlayerFileConfig(Player pl) {
+        File playerFile = FileUtil.getPlayerFile(pl.getUniqueId());
+        return YamlConfiguration.loadConfiguration(playerFile);
+    }
+
+    public static int getPlayerMaxPages(Player pl) {
+        FileConfiguration fileConfig = getPlayerFileConfig(pl);
+        return fileConfig.getInt("pages");
     }
 }

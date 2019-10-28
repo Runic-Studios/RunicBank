@@ -117,7 +117,6 @@ public class ClickEvent implements Listener {
         if (currentPage >= currentMax) return;
         saveContents(contents, pl, currentPage);
         BankGUI.getPlayer_pages().put(uuid, currentPage+1);
-        //BankGUI gui = new BankGUI(uuid);
         BankGUI.loadPage(inv, pl, fileConfig);
         Bukkit.broadcastMessage("current player viewing page is: " + BankGUI.getPlayer_pages().get(uuid));
     }
@@ -131,7 +130,6 @@ public class ClickEvent implements Listener {
         FileConfiguration fileConfig = YamlConfiguration.loadConfiguration(file);
         saveContents(contents, pl, currentPage);
         BankGUI.getPlayer_pages().put(uuid, currentPage-1);
-        //BankGUI gui = new BankGUI(uuid);
         BankGUI.loadPage(inv, pl, fileConfig);
         Bukkit.broadcastMessage("current player viewing page is: " + BankGUI.getPlayer_pages().get(uuid));
     }
