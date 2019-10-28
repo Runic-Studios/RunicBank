@@ -1,6 +1,5 @@
 package com.runicrealms.plugin.gui;
 
-import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.util.FileUtil;
 import com.runicrealms.plugin.util.Util;
 import net.md_5.bungee.api.ChatColor;
@@ -17,30 +16,25 @@ import java.util.*;
 
 public class BankGUI {
 
-    private String name;
     private static HashMap<UUID, Integer> player_pages = new HashMap<>();
 
     public BankGUI(UUID uuid) {
         Player pl = Bukkit.getPlayer(uuid);
         if (pl == null) return;
-        //name = ChatColor.translateAlternateColorCodes('&', "&f&l" + pl.getName() + "&6&l's Bank");
         if (!player_pages.keySet().contains(uuid)) player_pages.put(uuid, 1);
         Inventory inv = makeInventory(pl);
         File playerFile = FileUtil.getPlayerFile(pl.getUniqueId());
         FileConfiguration fileConfig = YamlConfiguration.loadConfiguration(playerFile);
         loadPage(inv, pl, fileConfig);
         pl.openInventory(inv);
-        Bukkit.broadcastMessage("current player viewing page is: " + getPlayer_pages().get(uuid));
     }
 
-    public static Inventory makeInventory(Player pl) {
-        File playerFile = FileUtil.getPlayerFile(pl.getUniqueId());
-        //FileConfiguration fileConfig = YamlConfiguration.loadConfiguration(playerFile);
+    private static Inventory makeInventory(Player pl) {
         String name = ChatColor.translateAlternateColorCodes('&', "&f&l" + pl.getName() + "&6&l's Bank");
-        Inventory inv = Bukkit.createInventory(pl, 54, name);
-        return inv;
+        return Bukkit.createInventory(pl, 54, name);
     }
 
+    // todo: update this method
     public static void loadPage(Inventory inv, Player pl, FileConfiguration fileConfig) {
         inv.clear();
         // fill top row with black panes
