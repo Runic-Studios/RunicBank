@@ -1,8 +1,0 @@
-name: RunicBank
-version: 1.0-SNAPSHOT
-main: com.runicrealms.plugin.RunicBank
-api-version: 1.13
-commands:
-  runicbank:
-    usage: /<commands>
-    description: Opens the runic bank
