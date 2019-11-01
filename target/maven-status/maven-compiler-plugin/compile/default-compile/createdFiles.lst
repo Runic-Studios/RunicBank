@@ -1,6 +1,0 @@
-com\runicrealms\plugin\RunicBank.class
-com\runicrealms\plugin\util\FileUtil.class
-com\runicrealms\plugin\event\ClickEvent.class
-com\runicrealms\plugin\util\Util.class
-com\runicrealms\plugin\BankCMD.class
-com\runicrealms\plugin\gui\BankGUI.class
