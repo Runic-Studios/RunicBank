@@ -19,7 +19,7 @@ public class FileUtil {
         File file = new File(RunicBank.getInstance().getDataFolder(), "/data/" + uuid.toString() + ".yml");
         if (!file.exists()) {
             FileConfiguration fileConfig = YamlConfiguration.loadConfiguration(file);
-            fileConfig.set("max_pages_index", 0); // banks have one page by default
+            fileConfig.set("max_page_index", 0); // banks have one page by default
             try {
                 fileConfig.save(file);
             } catch (IOException e) {

@@ -103,7 +103,7 @@ public class BankStorage {
                 return;
             }
             Workstation.takeItem(pl, Material.GOLD_NUGGET, price);
-            fileConfig.set("max_pages_index", maxIndex+1);
+            fileConfig.set("max_page_index", maxIndex+1);
             pl.playSound(pl.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
             pl.sendMessage(ChatColor.GREEN + "You purchased a new bank page!");
             FileUtil.saveFile(fileConfig, uuid);
