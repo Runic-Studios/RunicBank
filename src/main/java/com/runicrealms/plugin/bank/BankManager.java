@@ -10,6 +10,7 @@ import java.util.UUID;
 public class BankManager {
 
     private HashMap<UUID, BankStorage> storages;
+    //
 
     public BankManager() {
         this.storages = new HashMap<>();
