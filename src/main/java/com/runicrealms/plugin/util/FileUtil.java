@@ -34,7 +34,7 @@ public class FileUtil {
         return YamlConfiguration.loadConfiguration(playerFile);
     }
 
-    public static int getPlayerMaxPages(Player pl) {
+    public static int getMaxPageIndex(Player pl) {
         FileConfiguration fileConfig = getPlayerFileConfig(pl);
         return fileConfig.getInt("max_page_index");
     }

@@ -1,6 +1,5 @@
 package com.runicrealms.plugin.bank;
 
-import com.runicrealms.plugin.util.FileUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -10,7 +9,6 @@ import java.util.UUID;
 public class BankManager {
 
     private HashMap<UUID, BankStorage> storages;
-    //
 
     public BankManager() {
         this.storages = new HashMap<>();
@@ -21,7 +19,7 @@ public class BankManager {
         if (pl == null) return;
         BankStorage storage;
         if (!storages.containsKey(uuid)) {
-            storage = new BankStorage(0, FileUtil.getPlayerMaxPages(pl), uuid);
+            storage = new BankStorage(0, uuid);
             storages.put(uuid, storage);
         } else {
             storage = storages.get(uuid);

@@ -12,20 +12,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class BankStorage {
 
     private int currentPage;
-    private int numPages;
     private Inventory bankInv;
     private ItemStack[][] bankContents;
     private UUID ownerID;
 
-    public BankStorage(int currentPage, int numPages, UUID ownerID) {
+    BankStorage(int currentPage, UUID ownerID) {
         this.currentPage = currentPage;
-        this.numPages = numPages;
         this.bankInv = getNewStorage();
         this.bankContents = new ItemStack[Util.getMaxPages()][54];
         this.ownerID = ownerID;
@@ -51,7 +49,7 @@ public class BankStorage {
     /**
      * Display specified page from virtual memory.
      */
-    public void displayPage(int page) {
+    void displayPage(int page) {
         Player pl = Bukkit.getPlayer(this.ownerID);
         if (pl == null) return;
         this.bankInv = getNewStorage();
@@ -62,10 +60,10 @@ public class BankStorage {
         this.bankInv.setItem(5, Util.menuItem(Material.BLACK_STAINED_GLASS_PANE, "&r", ""));
         // menu buttons
         this.bankInv.setItem(4, Util.menuItem(Material.YELLOW_STAINED_GLASS_PANE, "&6&lBank of Alterra", "&7Welcome to your bank"));
-        this.bankInv.setItem(6, Util.menuItem(Material.LIGHT_BLUE_STAINED_GLASS_PANE, "&a&lAdd Page &f&l[&a&l" + 0 + "&f&l/5]", "&7Purchase a new bank page"));
+        this.bankInv.setItem(6, Util.menuItem(Material.LIGHT_BLUE_STAINED_GLASS_PANE, "&a&lAdd Page &f&l[&a&l" + (FileUtil.getMaxPageIndex(pl)+1) + "&f&l/5]", "&7Purchase a new bank page"));
         this.bankInv.setItem(7, Util.menuItem(Material.GREEN_STAINED_GLASS_PANE, "&f&lPrevious Page", "&7Display the previous page in your bank"));
         this.bankInv.setItem(8, Util.menuItem(Material.RED_STAINED_GLASS_PANE, "&f&lNext Page", "&7Display the next page in your bank"));
-        // load page
+        // load page from virtual memory
         for (int i = 9; i < 54; i++) {
             if (this.bankContents[page][i] != null) {
                 ItemStack item = this.bankContents[page][i];
@@ -83,8 +81,8 @@ public class BankStorage {
         Player pl = Bukkit.getPlayer(uuid);
         if (pl == null) return;
         FileConfiguration fileConfig = FileUtil.getPlayerFileConfig(pl);
-        int maxIndex = FileUtil.getPlayerMaxPages(pl);
-        int price = (int) Math.pow(2, maxIndex + 5);
+        int maxIndex = FileUtil.getMaxPageIndex(pl);
+        int price = (int) Math.pow(2, maxIndex + 6);
 
         if (mat != Material.SLIME_BALL) {
             if (maxIndex < 1) maxIndex = 1;
@@ -114,16 +112,12 @@ public class BankStorage {
     /**
      * View the previous page of the player's bank
      */
-    // todo: add a 'save page' method to virtual memory
     public void prevPage(UUID uuid) {
         Player pl = Bukkit.getPlayer(uuid);
         if (pl == null) return;
         if (currentPage <= 0) return;
         // update the virtual memory page
-//        for (int i = 9; i < 54; i++) {
-//            ItemStack item = this.getBankInv().getItem(i);
-//            bankContents[currentPage][i] = item;
-//        }
+        savePage();
         this.setCurrentPage(this.getCurrentPage()-1);
         this.displayPage(currentPage);
     }
@@ -134,15 +128,28 @@ public class BankStorage {
     public void nextPage(UUID uuid) {
         Player pl = Bukkit.getPlayer(uuid);
         if (pl == null) return;
-        int currentMax = FileUtil.getPlayerMaxPages(pl);
+        int currentMax = FileUtil.getMaxPageIndex(pl);
         if (currentPage >= currentMax) return;
         // update the virtual memory page
-//        for (int i = 9; i < 54; i++) {
-//            ItemStack item = this.getBankInv().getItem(i);
-//            bankContents[currentPage][i] = item;
-//        }
+        savePage();
         this.setCurrentPage(this.getCurrentPage()+1);
         this.displayPage(currentPage);
+    }
+
+    /**
+     * Updates the current bank inventory in virtual memory
+     */
+    private void savePage() {
+        // clear the current memory page
+        Arrays.fill(this.bankContents[currentPage], null);
+        Inventory current = this.getBankInv();
+        for (int i = 0; i < 54; i++) {
+            this.bankContents[currentPage][i] = current.getItem(i);
+        }
+    }
+
+    private void saveContents() {
+
     }
 
     private Inventory getNewStorage() {
@@ -152,38 +159,15 @@ public class BankStorage {
         return Bukkit.createInventory(pl, 54, name);
     }
 
-    private void savePage(int page) {}
-    private void saveContents() {}
-
-    public int getCurrentPage() {
+    private int getCurrentPage() {
         return currentPage;
     }
 
-    public void setCurrentPage(int currentPage) {
+    void setCurrentPage(int currentPage) {
         this.currentPage = currentPage;
-    }
-
-    public int getNumPages() {
-        return numPages;
-    }
-
-    public void setNumPages(int numPages) {
-        this.numPages = numPages;
     }
 
     public Inventory getBankInv() {
         return bankInv;
-    }
-
-    public void setBankInv(Inventory bankInv) {
-        this.bankInv = bankInv;
-    }
-
-    public UUID getOwnerID() {
-        return ownerID;
-    }
-
-    public void setOwnerID(UUID ownerID) {
-        this.ownerID = ownerID;
     }
 }
