@@ -38,21 +38,6 @@ public class BankGUI {
     }
 
     /**
-     * Load the entirety of the player's item data into virtual memory
-     */
-//    private void loadFileContents(Player pl) {
-//        ItemStack[][] bankContents = bank_inventory.get(pl.getUniqueId());
-//        for (int i = 0; i < FileUtil.getPlayerMaxPages(pl); i++) {
-//            for (int j = 9; j < 54; j++) {
-//                ItemStack item = FileUtil.getPlayerFileConfig(pl).getItemStack("page_" + i + ".items." + j);
-//                bankContents[i][j] = item;
-//            }
-//        }
-//        ItemStack test = bankContents[1][40];
-//        Bukkit.broadcastMessage(test.getType() + "");
-//    }
-
-    /**
      * Load specified page from virtual memory
      */
     public static void loadPage(Player pl, Inventory inv, int pageIndex) {

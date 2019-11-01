@@ -19,7 +19,7 @@ public class FileUtil {
         File file = new File(RunicBank.getInstance().getDataFolder(), "/data/" + uuid.toString() + ".yml");
         if (!file.exists()) {
             FileConfiguration fileConfig = YamlConfiguration.loadConfiguration(file);
-            fileConfig.set("pages", 1); // banks have one page by default
+            fileConfig.set("max_pages_index", 0); // banks have one page by default
             try {
                 fileConfig.save(file);
             } catch (IOException e) {
@@ -36,6 +36,14 @@ public class FileUtil {
 
     public static int getPlayerMaxPages(Player pl) {
         FileConfiguration fileConfig = getPlayerFileConfig(pl);
-        return fileConfig.getInt("pages");
+        return fileConfig.getInt("max_page_index");
+    }
+
+    public static void saveFile(FileConfiguration fileConfig, UUID uuid) {
+        try {
+            fileConfig.save(FileUtil.getPlayerFile(uuid));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 }

@@ -1,14 +1,18 @@
 package com.runicrealms.plugin.bank;
 
+import com.runicrealms.plugin.professions.Workstation;
 import com.runicrealms.plugin.util.FileUtil;
 import com.runicrealms.plugin.util.Util;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.IOException;
 import java.util.UUID;
 
 public class BankStorage {
@@ -72,6 +76,59 @@ public class BankStorage {
     }
 
     /**
+     * Allow player to purchase a bank page
+     */
+    public void addPage(UUID uuid, Material mat) {
+
+        Player pl = Bukkit.getPlayer(uuid);
+        if (pl == null) return;
+        FileConfiguration fileConfig = FileUtil.getPlayerFileConfig(pl);
+        int maxIndex = FileUtil.getPlayerMaxPages(pl);
+        int price = (int) Math.pow(2, maxIndex + 5);
+
+        if (mat != Material.SLIME_BALL) {
+            if (maxIndex < 1) maxIndex = 1;
+            if (maxIndex >= Util.getMaxPages()) {
+                pl.playSound(pl.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
+                pl.sendMessage(ChatColor.RED + "You already have the maximum number of pages!");
+                return;
+            }
+            // ask for confirmation
+            this.getBankInv().setItem(6, Util.menuItem(Material.SLIME_BALL, "&a&lConfirm Purchase", "&7Purchase a new page for: &6&l" + price + "G"));
+        } else {
+
+            if (!pl.getInventory().contains(Material.GOLD_NUGGET, price)) {
+                pl.playSound(pl.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
+                pl.sendMessage(ChatColor.RED + "You don't have enough gold!");
+                return;
+            }
+            Workstation.takeItem(pl, Material.GOLD_NUGGET, price);
+            fileConfig.set("max_pages_index", maxIndex+1);
+            pl.playSound(pl.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
+            pl.sendMessage(ChatColor.GREEN + "You purchased a new bank page!");
+            FileUtil.saveFile(fileConfig, uuid);
+            pl.closeInventory();
+        }
+    }
+
+    /**
+     * View the previous page of the player's bank
+     */
+    // todo: add a 'save page' method to virtual memory
+    public void prevPage(UUID uuid) {
+        Player pl = Bukkit.getPlayer(uuid);
+        if (pl == null) return;
+        if (currentPage <= 0) return;
+        // update the virtual memory page
+//        for (int i = 9; i < 54; i++) {
+//            ItemStack item = this.getBankInv().getItem(i);
+//            bankContents[currentPage][i] = item;
+//        }
+        this.setCurrentPage(this.getCurrentPage()-1);
+        this.displayPage(currentPage);
+    }
+
+    /**
      * View the next page of the player's bank
      */
     public void nextPage(UUID uuid) {
@@ -80,13 +137,12 @@ public class BankStorage {
         int currentMax = FileUtil.getPlayerMaxPages(pl);
         if (currentPage >= currentMax) return;
         // update the virtual memory page
-        for (int i = 9; i < 54; i++) {
-            ItemStack item = this.getBankInv().getItem(i);
-            bankContents[currentPage][i] = item;
-        }
+//        for (int i = 9; i < 54; i++) {
+//            ItemStack item = this.getBankInv().getItem(i);
+//            bankContents[currentPage][i] = item;
+//        }
         this.setCurrentPage(this.getCurrentPage()+1);
         this.displayPage(currentPage);
-        Bukkit.broadcastMessage("current player viewing page is: " + this.getCurrentPage());
     }
 
     private Inventory getNewStorage() {
