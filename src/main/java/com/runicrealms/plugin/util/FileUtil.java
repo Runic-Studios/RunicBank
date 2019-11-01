@@ -29,13 +29,13 @@ public class FileUtil {
         return file;
     }
 
-    public static FileConfiguration getPlayerFileConfig(Player pl) {
-        File playerFile = FileUtil.getPlayerFile(pl.getUniqueId());
+    public static FileConfiguration getPlayerFileConfig(UUID uuid) {
+        File playerFile = FileUtil.getPlayerFile(uuid);
         return YamlConfiguration.loadConfiguration(playerFile);
     }
 
     public static int getMaxPageIndex(Player pl) {
-        FileConfiguration fileConfig = getPlayerFileConfig(pl);
+        FileConfiguration fileConfig = getPlayerFileConfig(pl.getUniqueId());
         return fileConfig.getInt("max_page_index");
     }
 

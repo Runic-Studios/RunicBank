@@ -3,6 +3,7 @@ package com.runicrealms.plugin;
 import com.runicrealms.plugin.bank.BankManager;
 import com.runicrealms.plugin.command.BankCMD;
 import com.runicrealms.plugin.event.ClickEvent;
+import com.runicrealms.plugin.event.LogoutEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class RunicBank extends JavaPlugin {
@@ -30,6 +31,7 @@ public final class RunicBank extends JavaPlugin {
 
         // register events
         getServer().getPluginManager().registerEvents(new ClickEvent(), this);
+        getServer().getPluginManager().registerEvents(new LogoutEvent(), this);
     }
 
     @Override

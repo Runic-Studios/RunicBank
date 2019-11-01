@@ -38,8 +38,8 @@ public class BankStorage {
         if (pl == null) return;
         for (int i = 0; i < Util.getMaxPages(); i++) {
             for (int j = 0; j < 54; j++) {
-                if (FileUtil.getPlayerFileConfig(pl).getItemStack("page_" + i + ".items." + j) != null) {
-                    ItemStack item = FileUtil.getPlayerFileConfig(pl).getItemStack("page_" + i + ".items." + j);
+                if (FileUtil.getPlayerFileConfig(this.ownerID).getItemStack("page_" + i + ".items." + j) != null) {
+                    ItemStack item = FileUtil.getPlayerFileConfig(this.ownerID).getItemStack("page_" + i + ".items." + j);
                     this.bankContents[i][j] = item;
                 }
             }
@@ -80,7 +80,7 @@ public class BankStorage {
 
         Player pl = Bukkit.getPlayer(uuid);
         if (pl == null) return;
-        FileConfiguration fileConfig = FileUtil.getPlayerFileConfig(pl);
+        FileConfiguration fileConfig = FileUtil.getPlayerFileConfig(this.ownerID);
         int maxIndex = FileUtil.getMaxPageIndex(pl);
         int price = (int) Math.pow(2, maxIndex + 6);
 
@@ -139,7 +139,7 @@ public class BankStorage {
     /**
      * Updates the current bank inventory in virtual memory
      */
-    private void savePage() {
+    public void savePage() {
         // clear the current memory page
         Arrays.fill(this.bankContents[currentPage], null);
         Inventory current = this.getBankInv();
@@ -148,10 +148,26 @@ public class BankStorage {
         }
     }
 
-    private void saveContents() {
-
+    /**
+     * Saves all contents loaded in memory to flat file.
+     */
+    public void saveContents() {
+        FileConfiguration fileConfig = FileUtil.getPlayerFileConfig(this.ownerID);
+        for (int i = 0; i < Util.getMaxPages(); i++) {
+            fileConfig.set("page_" + i, null); // wipe currently saved items
+            for (int j = 9; j < 54; j++) {
+                if (this.bankContents[i][j] != null) {
+                    ItemStack item = this.bankContents[i][j];
+                    fileConfig.set("page_" + i + ".items." + j, item);
+                }
+            }
+        }
+        FileUtil.saveFile(fileConfig, this.ownerID);
     }
 
+    /**
+     * Builds an empty bank inventory
+     */
     private Inventory getNewStorage() {
         Player pl = Bukkit.getPlayer(this.ownerID);
         if (pl == null) return null;

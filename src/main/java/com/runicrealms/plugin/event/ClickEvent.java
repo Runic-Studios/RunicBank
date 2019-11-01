@@ -2,7 +2,6 @@ package com.runicrealms.plugin.event;
 
 import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.bank.BankStorage;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -42,16 +41,19 @@ public class ClickEvent implements Listener {
         }
     }
 
+    /**
+     * Write bank info to file.
+     */
     @EventHandler
     public void onBankClose(InventoryCloseEvent e) {
-        if (e.getInventory().getTitle().equals(
-                ChatColor.translateAlternateColorCodes(
-                        '&', "&f&l" + e.getPlayer().getName() + "&6&l's Bank"))) {
-
-            //ItemStack[] contents = e.getInventory().getContents();
-            // save contents to proper page section
-            //BankGUI.saveBankContents((Player) e.getPlayer());
-            //BankGUI.getPlayer_pages().remove(e.getPlayer().getUniqueId());
+        Player pl = (Player) e.getPlayer();
+        if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankInv() == null) return;
+        Inventory bankInv = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankInv();
+        Inventory inv = e.getInventory();
+        if (inv.getTitle().equals(bankInv.getTitle())) {
+            BankStorage storage = RunicBank.getBankManager().getStorages().get(pl.getUniqueId());
+            storage.savePage(); // to array
+            storage.saveContents(); // to flat file
         }
     }
 }
