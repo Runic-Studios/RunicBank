@@ -1,5 +1,7 @@
 package com.runicrealms.plugin.event;
 
+import com.runicrealms.plugin.RunicBank;
+import com.runicrealms.plugin.bank.BankStorage;
 import com.runicrealms.plugin.gui.BankGUI;
 import com.runicrealms.plugin.professions.Workstation;
 import com.runicrealms.plugin.util.FileUtil;
@@ -8,7 +10,6 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -32,14 +33,14 @@ public class ClickEvent implements Listener {
         if (!(e.getWhoClicked() instanceof Player)) return;
         Player pl = (Player) e.getWhoClicked();
         Inventory inv = e.getInventory();
-        String title = ChatColor.translateAlternateColorCodes(
-                '&', "&f&l" + pl.getName() + "&6&l's Bank");
         // disable interactions on first 9 slots
-        if (inv.getTitle().equals(title)) {
+        Inventory bankInv = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankInv();
+        if (inv.getTitle().equals(bankInv.getTitle())) {
             if (e.getClickedInventory() != null
-                    && e.getClickedInventory().getTitle().equals(title) && e.getSlot() < 9) {
+                    && e.getClickedInventory().getTitle().equals(bankInv.getTitle()) && e.getSlot() < 9) {
                 pl.playSound(pl.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
                 e.setCancelled(true);
+                BankStorage storage = RunicBank.getBankManager().getStorages().get(pl.getUniqueId());
                 switch (e.getSlot()) {
                     case 6:
                         addPage(inv, e.getWhoClicked().getUniqueId(), inv.getItem(6).getType());
@@ -48,7 +49,7 @@ public class ClickEvent implements Listener {
                         prevPage(inv, inv.getContents(), pl.getUniqueId());
                         break;
                     case 8:
-                        nextPage(inv, inv.getContents(), pl.getUniqueId());
+                        storage.nextPage(pl.getUniqueId());
                         break;
                 }
             }
@@ -61,25 +62,27 @@ public class ClickEvent implements Listener {
                 ChatColor.translateAlternateColorCodes(
                         '&', "&f&l" + e.getPlayer().getName() + "&6&l's Bank"))) {
 
-            ItemStack[] contents = e.getInventory().getContents();
+            //ItemStack[] contents = e.getInventory().getContents();
             // save contents to proper page section
-            saveContents(contents, (Player) e.getPlayer(), BankGUI.getPlayer_pages().get(e.getPlayer().getUniqueId()));
+            BankGUI.saveBankContents((Player) e.getPlayer());
             BankGUI.getPlayer_pages().remove(e.getPlayer().getUniqueId());
         }
     }
 
+    /**
+     * Allow player to purchase a bank page
+     */
     private void addPage(Inventory inv, UUID uuid, Material mat) {
 
         Player pl = Bukkit.getPlayer(uuid);
         if (pl == null) return;
-        File file = FileUtil.getPlayerFile(uuid);
-        FileConfiguration fileConfig = YamlConfiguration.loadConfiguration(file);
-        int currentPages = fileConfig.getInt("pages");
-        int price = (int) Math.pow(2, currentPages + 5);
+        FileConfiguration fileConfig = FileUtil.getPlayerFileConfig(pl);
+        int currentMax = FileUtil.getPlayerMaxPages(pl);
+        int price = (int) Math.pow(2, currentMax + 5);
 
         if (mat != Material.SLIME_BALL) {
-            if (currentPages < 1) currentPages = 1;
-            if (currentPages >= Util.getMaxPages()) {
+            if (currentMax < 1) currentMax = 1;
+            if (currentMax >= Util.getMaxPages()) {
                 pl.playSound(pl.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
                 pl.sendMessage(ChatColor.RED + "You already have the maximum number of pages!");
                 return;
@@ -94,12 +97,11 @@ public class ClickEvent implements Listener {
                 return;
             }
             Workstation.takeItem(pl, Material.GOLD_NUGGET, price);
-            saveContents(inv.getContents(), pl, BankGUI.getPlayer_pages().get(uuid));
-            fileConfig.set("pages", currentPages+1);
+            fileConfig.set("pages", currentMax+1);
             pl.playSound(pl.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
             pl.sendMessage(ChatColor.GREEN + "You purchased a new bank page!");
             try {
-                fileConfig.save(file);
+                fileConfig.save(FileUtil.getPlayerFile(uuid));
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -107,63 +109,14 @@ public class ClickEvent implements Listener {
         }
     }
 
-    private void nextPage(Inventory inv, ItemStack[] contents, UUID uuid) {
-        Player pl = Bukkit.getPlayer(uuid);
-        if (pl == null) return;
-        int currentPage = BankGUI.getPlayer_pages().get(uuid);
-        File file = FileUtil.getPlayerFile(pl.getUniqueId());
-        FileConfiguration fileConfig = YamlConfiguration.loadConfiguration(file);
-        int currentMax = fileConfig.getInt("pages");
-        if (currentPage >= currentMax) return;
-        saveContents(contents, pl, currentPage);
-        BankGUI.getPlayer_pages().put(uuid, currentPage+1);
-        BankGUI.loadPage(inv, pl, fileConfig);
-        Bukkit.broadcastMessage("current player viewing page is: " + BankGUI.getPlayer_pages().get(uuid));
-    }
-
     private void prevPage(Inventory inv, ItemStack[] contents, UUID uuid) {
         Player pl = Bukkit.getPlayer(uuid);
         if (pl == null) return;
         int currentPage = BankGUI.getPlayer_pages().get(uuid);
         if (currentPage <= 1) return;
-        File file = FileUtil.getPlayerFile(pl.getUniqueId());
-        FileConfiguration fileConfig = YamlConfiguration.loadConfiguration(file);
-        saveContents(contents, pl, currentPage);
+        BankGUI.savePage(pl, contents, currentPage);
         BankGUI.getPlayer_pages().put(uuid, currentPage-1);
-        BankGUI.loadPage(inv, pl, fileConfig);
+        BankGUI.loadPage(pl, inv, currentPage-1);
         Bukkit.broadcastMessage("current player viewing page is: " + BankGUI.getPlayer_pages().get(uuid));
-    }
-
-    /**
-     * Save bank contents to player data file
-     * @param page is the current page of the player's bank
-     */
-    private void saveContents(ItemStack[] contents, Player pl, int page) {
-        File playerFile = FileUtil.getPlayerFile(pl.getUniqueId());
-        FileConfiguration itemConfig = YamlConfiguration.loadConfiguration(playerFile);
-
-        // save new contents
-        for (int i = 9; i < 54; i++) {
-            if (contents[i] != null) {
-                itemConfig.set("page_" + page + ".items." + i, contents[i]);
-            }
-        }
-
-        // delete removed items
-        ConfigurationSection items = itemConfig.getConfigurationSection("page_" + page + ".items");
-        if (items == null) return;
-        for (String s : items.getKeys(false)) {
-            if (contents[Integer.parseInt(s)] == null
-                    || (contents[Integer.parseInt(s)] != null && contents[Integer.parseInt(s)].getType() == Material.AIR)) {
-                items.set(s, null);
-            }
-        }
-
-        // save file
-        try {
-            itemConfig.save(playerFile);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
     }
 }

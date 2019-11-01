@@ -1,6 +1,6 @@
 package com.runicrealms.plugin.command;
 
-import com.runicrealms.plugin.gui.BankGUI;
+import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.util.FileUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -19,7 +19,7 @@ public class BankCMD implements CommandExecutor {
         if(sender instanceof Player) {
             if (!sender.isOp()) return false;
             retrieveDataFile(sender);
-            BankGUI bankGUI = new BankGUI(((Player) sender).getUniqueId());
+            RunicBank.getBankManager().openBank(((Player) sender).getUniqueId());
         } else {
             sender.sendMessage(ChatColor.DARK_RED + ("You must be a player to use /bank!"));
         }

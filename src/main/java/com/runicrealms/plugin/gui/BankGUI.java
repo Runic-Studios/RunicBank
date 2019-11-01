@@ -10,20 +10,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.IOException;
 import java.util.*;
 
 public class BankGUI {
 
     private static HashMap<UUID, Integer> player_pages = new HashMap<>();
-    private static HashMap<UUID, ItemStack[][]> bank_inventory;
+    private static HashMap<UUID, ItemStack[][]> bank_inventory = new HashMap<>();
 
     public BankGUI(UUID uuid) {
         Player pl = Bukkit.getPlayer(uuid);
         if (pl == null) return;
-        if (!player_pages.keySet().contains(uuid)) player_pages.put(uuid, 1);
+        player_pages.put(uuid, 1);//if (!player_pages.keySet().contains(uuid))
+        Bukkit.broadcastMessage(getPlayer_pages().get(uuid) + "");
         Inventory inv = makeInventory(pl);
-        loadFileContents(pl);
-        loadPage(inv, pl, 0);
+        if (!bank_inventory.containsKey(uuid)) {
+            bank_inventory.put(uuid, new ItemStack[Util.getMaxPages()][54]); // create a 2D array w/ max # of pages
+            //loadFileContents(pl);
+        }
+        loadPage(pl, inv,0);
         pl.openInventory(inv);
     }
 
@@ -35,19 +40,22 @@ public class BankGUI {
     /**
      * Load the entirety of the player's item data into virtual memory
      */
-    public static void loadFileContents(Player pl) {
-        for (int i = 0; i < FileUtil.getPlayerMaxPages(pl); i++) {
-            for (int j = 9; j < 54; j++) {
-                ItemStack item = FileUtil.getPlayerFileConfig(pl).getItemStack
-                        ("page_" + getPlayer_pages().get(pl.getUniqueId()) + ".items." + (i + 1));
-                //if (item != null) {
-                    bank_inventory.get(pl.getUniqueId())[i][j] = item;
-                //}
-            }
-        }
-    }
+//    private void loadFileContents(Player pl) {
+//        ItemStack[][] bankContents = bank_inventory.get(pl.getUniqueId());
+//        for (int i = 0; i < FileUtil.getPlayerMaxPages(pl); i++) {
+//            for (int j = 9; j < 54; j++) {
+//                ItemStack item = FileUtil.getPlayerFileConfig(pl).getItemStack("page_" + i + ".items." + j);
+//                bankContents[i][j] = item;
+//            }
+//        }
+//        ItemStack test = bankContents[1][40];
+//        Bukkit.broadcastMessage(test.getType() + "");
+//    }
 
-    public static void loadPage(Inventory inv, Player pl, int page) {
+    /**
+     * Load specified page from virtual memory
+     */
+    public static void loadPage(Player pl, Inventory inv, int pageIndex) {
         inv.clear();
         // fill top row with black panes
         for (int i = 0; i < 4; i++) {
@@ -56,17 +64,65 @@ public class BankGUI {
         inv.setItem(5, Util.menuItem(Material.BLACK_STAINED_GLASS_PANE, "&r", ""));
         // menu buttons
         inv.setItem(4, Util.menuItem(Material.YELLOW_STAINED_GLASS_PANE, "&6&lBank of Alterra", "&7Welcome to your bank"));
-        //int currentPages = fileConfig.getInt("pages");
         inv.setItem(6, Util.menuItem(Material.LIGHT_BLUE_STAINED_GLASS_PANE, "&a&lAdd Page &f&l[&a&l" + 0 + "&f&l/5]", "&7Purchase a new bank page"));
         inv.setItem(7, Util.menuItem(Material.GREEN_STAINED_GLASS_PANE, "&f&lPrevious Page", "&7Display the previous page in your bank"));
         inv.setItem(8, Util.menuItem(Material.RED_STAINED_GLASS_PANE, "&f&lNext Page", "&7Display the next page in your bank"));
         // load page
+        ItemStack[] page = bank_inventory.get(pl.getUniqueId())[pageIndex];
         for (int i = 9; i < 54; i++) {
-            //ItemStack item = fileConfig.getItemStack("page_" + getPlayer_pages().get(pl.getUniqueId()) + ".items." + i);
-            ItemStack item = bank_inventory.get(pl.getUniqueId())[page][i];
+            ItemStack item = page[i];
             if (item != null) {
                 inv.setItem(i, item);
             }
+        }
+        pl.openInventory(inv);
+    }
+
+    /**
+     * Save bank contents to player data file
+     */
+    public static void saveBankContents(Player pl) {
+
+        FileConfiguration itemConfig = FileUtil.getPlayerFileConfig(pl);
+        ItemStack[][] bankContents = bank_inventory.get(pl.getUniqueId());
+
+        // save new contents
+        for (int i = 0; i < FileUtil.getPlayerMaxPages(pl); i++) {
+            for (int j = 9; j < 54; j++) {
+                ItemStack item = bankContents[i][j];
+                if (item != null)
+                    itemConfig.set("page_" + i + ".items." + j, item);
+            }
+        }
+
+//        // delete removed items
+//        ConfigurationSection items = itemConfig.getConfigurationSection("page_" + page + ".items");
+//        if (items == null) return;
+//        for (String s : items.getKeys(false)) {
+//            if (contents[Integer.parseInt(s)] == null
+//                    || (contents[Integer.parseInt(s)] != null && contents[Integer.parseInt(s)].getType() == Material.AIR)) {
+//                items.set(s, null);
+//            }
+//        }
+
+        // save file
+        try {
+            itemConfig.save(FileUtil.getPlayerFile(pl.getUniqueId()));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * Save the player's current inventory screen (bank) to virtual memory
+     */
+    public static void savePage(Player pl, ItemStack[] contents, int pageIndex) {
+
+        ItemStack[][] bankContents = bank_inventory.get(pl.getUniqueId());
+
+        for (int i = 9; i < 54; i++) {
+            ItemStack item = contents[i];
+            bankContents[pageIndex][i] = item;
         }
     }
 
