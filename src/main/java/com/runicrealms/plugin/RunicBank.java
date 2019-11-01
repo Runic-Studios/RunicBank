@@ -23,6 +23,7 @@ public final class RunicBank extends JavaPlugin {
         // load config defaults
         getConfig().options().copyDefaults(true);
         saveConfig();
+        //
 
         // register bank command
         getCommand("runicbank").setExecutor(new BankCMD());
