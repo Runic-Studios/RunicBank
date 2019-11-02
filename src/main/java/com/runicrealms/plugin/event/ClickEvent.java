@@ -48,6 +48,7 @@ public class ClickEvent implements Listener {
     public void onBankClose(InventoryCloseEvent e) {
         Player pl = (Player) e.getPlayer();
         if (RunicBank.getBankManager().getStorages() == null) return;
+        if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()) == null) return;
         if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankInv() == null) return;
         Inventory bankInv = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankInv();
         Inventory inv = e.getInventory();

@@ -85,8 +85,7 @@ public class BankStorage {
         int price = (int) Math.pow(2, maxIndex + 6);
 
         if (mat != Material.SLIME_BALL) {
-            if (maxIndex < 1) maxIndex = 1;
-            if (maxIndex >= Util.getMaxPages()) {
+            if ((maxIndex+1) >= Util.getMaxPages()) {
                 pl.playSound(pl.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
                 pl.sendMessage(ChatColor.RED + "You already have the maximum number of pages!");
                 return;
