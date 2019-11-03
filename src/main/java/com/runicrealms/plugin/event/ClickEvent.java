@@ -19,6 +19,8 @@ public class ClickEvent implements Listener {
         Player pl = (Player) e.getWhoClicked();
         Inventory inv = e.getInventory();
         // disable interactions on first 9 slots
+        if (RunicBank.getBankManager().getStorages() == null) return;
+        if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()) == null) return;
         Inventory bankInv = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankInv();
         if (inv.getTitle().equals(bankInv.getTitle())) {
             if (e.getClickedInventory() != null
