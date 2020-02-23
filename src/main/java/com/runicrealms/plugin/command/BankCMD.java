@@ -20,7 +20,6 @@ public class BankCMD implements CommandExecutor {
         if(sender instanceof Player) {
             if (!sender.isOp()) return false;
             retrieveDataFile(sender);
-            ((Player) sender).playSound(((Player) sender).getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
             RunicBank.getBankManager().openBank(((Player) sender).getUniqueId());
         } else {
             sender.sendMessage(ChatColor.DARK_RED + ("You must be a player to use /bank!"));

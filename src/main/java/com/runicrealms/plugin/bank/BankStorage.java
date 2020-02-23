@@ -1,8 +1,9 @@
 package com.runicrealms.plugin.bank;
 
-import com.runicrealms.plugin.professions.Workstation;
+import com.runicrealms.plugin.item.util.ItemRemover;
 import com.runicrealms.plugin.util.FileUtil;
 import com.runicrealms.plugin.util.Util;
+import com.runicrealms.plugin.utilities.CurrencyUtil;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -99,7 +100,7 @@ public class BankStorage {
                 pl.sendMessage(ChatColor.RED + "You don't have enough gold!");
                 return;
             }
-            Workstation.takeItem(pl, Material.GOLD_NUGGET, price);
+            ItemRemover.takeItem(pl, CurrencyUtil.goldCoin(), price);
             fileConfig.set("max_page_index", maxIndex+1);
             pl.playSound(pl.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
             pl.sendMessage(ChatColor.GREEN + "You purchased a new bank page!");
