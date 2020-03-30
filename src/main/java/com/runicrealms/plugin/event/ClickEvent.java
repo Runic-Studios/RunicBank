@@ -8,23 +8,20 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.inventory.Inventory;
 
-@SuppressWarnings("deprecation")
 public class ClickEvent implements Listener {
 
     @EventHandler
     public void clickEvent(InventoryClickEvent e) {
         if (!(e.getWhoClicked() instanceof Player)) return;
         Player pl = (Player) e.getWhoClicked();
-        Inventory inv = e.getInventory();
         // disable interactions on first 9 slots
         if (RunicBank.getBankManager().getStorages() == null) return;
         if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()) == null) return;
-        Inventory bankInv = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankInv();
-        if (inv.getTitle().equals(bankInv.getTitle())) {
+        String bankTitle = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankTitle();
+        if (e.getView().getTitle().equalsIgnoreCase(bankTitle)) {
             if (e.getClickedInventory() != null
-                    && e.getClickedInventory().getTitle().equals(bankInv.getTitle()) && e.getSlot() < 9) {
+                    && e.getView().getTitle().equals(bankTitle) && e.getSlot() < 9) {
                 pl.playSound(pl.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
                 e.setCancelled(true);
                 BankStorage storage = RunicBank.getBankManager().getStorages().get(pl.getUniqueId());
@@ -52,9 +49,8 @@ public class ClickEvent implements Listener {
         if (RunicBank.getBankManager().getStorages() == null) return;
         if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()) == null) return;
         if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankInv() == null) return;
-        Inventory bankInv = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankInv();
-        Inventory inv = e.getInventory();
-        if (inv.getTitle().equals(bankInv.getTitle())) {
+        String bankTitle = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankTitle();
+        if (e.getView().getTitle().equals(bankTitle)) {
             BankStorage storage = RunicBank.getBankManager().getStorages().get(pl.getUniqueId());
             storage.savePage(); // to array
             storage.saveContents(); // to flat file

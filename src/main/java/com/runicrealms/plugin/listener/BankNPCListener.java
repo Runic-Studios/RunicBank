@@ -39,13 +39,38 @@ public class BankNPCListener implements Listener {
         }, NPC_CLICK_DELAY); // After 20 ticks/1 second, remove the metadata key
 
         /*
+        Artifact Forge
+         */
+        if (RunicBank.getForgeNPCs().contains(event.getNPC().getId())) {
+            Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), "openforge " + pl.getName());
+            return;
+        }
+
+        /*
+        Jewel masters
+         */
+        if (RunicBank.getJewelerNPCs().contains(event.getNPC().getId())) {
+            Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), "jewelmaster " + pl.getName());
+            return;
+        }
+
+        /*
+        Scrappers
+         */
+        if (RunicBank.getScrapperNPCs().contains(event.getNPC().getId())) {
+            Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), "currency scrapper " + pl.getName());
+            return;
+        }
+
+        /*
         Bank-specific stuff
          */
-        if (!RunicBank.getBankNPCs().contains(event.getNPC().getId())) return;
-        if (!RunicBank.getBankManager().getStorages().containsKey(pl.getUniqueId())) {
-            retrieveDataFile(pl);
+        if (RunicBank.getBankNPCs().contains(event.getNPC().getId())) {
+            if (!RunicBank.getBankManager().getStorages().containsKey(pl.getUniqueId())) {
+                retrieveDataFile(pl);
+            }
+            RunicBank.getBankManager().openBank(pl.getUniqueId());
         }
-        RunicBank.getBankManager().openBank(pl.getUniqueId());
     }
 
     private void retrieveDataFile(CommandSender sender) {

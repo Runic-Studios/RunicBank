@@ -20,12 +20,17 @@ public class BankStorage {
 
     private int currentPage;
     private Inventory bankInv;
+    private String bankTitle = "";
     private ItemStack[][] bankContents;
     private UUID ownerID;
 
     BankStorage(int currentPage, UUID ownerID) {
         this.currentPage = currentPage;
         this.bankInv = getNewStorage();
+        Player pl = Bukkit.getPlayer(ownerID);
+        if (pl == null) return;
+        this.bankTitle = ChatColor.translateAlternateColorCodes
+                ('&', "&f&l" + pl.getName() + "&6&l's Bank");
         this.bankContents = new ItemStack[Util.getMaxPages()][54];
         this.ownerID = ownerID;
         loadFileContents();
@@ -171,7 +176,7 @@ public class BankStorage {
     private Inventory getNewStorage() {
         Player pl = Bukkit.getPlayer(this.ownerID);
         if (pl == null) return null;
-        String name = ChatColor.translateAlternateColorCodes('&', "&f&l" + pl.getName() + "&6&l's Bank");
+        String name = bankTitle;
         return Bukkit.createInventory(pl, 54, name);
     }
 
@@ -185,5 +190,9 @@ public class BankStorage {
 
     public Inventory getBankInv() {
         return bankInv;
+    }
+
+    public String getBankTitle() {
+        return bankTitle;
     }
 }
