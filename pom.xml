@@ -6,7 +6,7 @@
 
     <groupId>com.runicrealms.plugin</groupId>
     <artifactId>RunicBank</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.15.2</version>
     <packaging>jar</packaging>
 
     <name>RunicBank</name>
