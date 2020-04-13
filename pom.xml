@@ -90,14 +90,12 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
-
         <!-- Citizens Repo -->
         <repository>
             <id>everything</id>
             <url>http://repo.citizensnpcs.co/</url>
         </repository>
     </repositories>
-
     <dependencies>
         <!-- CitizensAPI -->
         <dependency>
@@ -114,6 +112,14 @@
             <version>1.15.2</version>
             <scope>system</scope>
             <systemPath>C:/Users/Owner/IdeaProjects/lib/RunicCore-1.15.2.jar</systemPath>
+        </dependency>
+        <!-- RunicRestart -->
+        <dependency>
+            <groupId>com.runicrealms.plugin</groupId>
+            <artifactId>RunicRestart</artifactId>
+            <version>1.15.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/RunicRestart.jar</systemPath>
         </dependency>
         <!-- Spigot API -->
         <dependency>

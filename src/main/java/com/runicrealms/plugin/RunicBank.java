@@ -4,6 +4,7 @@ import com.runicrealms.plugin.bank.BankManager;
 import com.runicrealms.plugin.event.ClickEvent;
 import com.runicrealms.plugin.event.LogoutEvent;
 import com.runicrealms.plugin.listener.BankNPCListener;
+import com.runicrealms.runicrestart.api.RunicRestartApi;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashSet;
@@ -42,6 +43,8 @@ public final class RunicBank extends JavaPlugin {
         initializeForgeNPCs();
         initializeJewelerNPCs();
         initializeScrapperNPCs();
+
+        RunicRestartApi.markPluginLoaded("bank");
     }
 
     // todo: move to config
@@ -138,5 +141,6 @@ public final class RunicBank extends JavaPlugin {
         plugin = null;
         bankManager = null;
         bankNPCs = null;
+        RunicRestartApi.markPluginSaved("bank");
     }
 }
