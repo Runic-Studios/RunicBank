@@ -141,6 +141,5 @@ public final class RunicBank extends JavaPlugin {
         plugin = null;
         bankManager = null;
         bankNPCs = null;
-        RunicRestartApi.markPluginSaved("bank");
     }
 }
