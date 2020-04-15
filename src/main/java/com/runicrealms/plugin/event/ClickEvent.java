@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.PlayerInventory;
 
 public class ClickEvent implements Listener {
 
@@ -21,6 +22,7 @@ public class ClickEvent implements Listener {
         String bankTitle = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankTitle();
         if (e.getView().getTitle().equalsIgnoreCase(bankTitle)) {
             if (e.getClickedInventory() != null
+                    && !(e.getClickedInventory() instanceof PlayerInventory)
                     && e.getView().getTitle().equals(bankTitle) && e.getSlot() < 9) {
                 pl.playSound(pl.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
                 e.setCancelled(true);
