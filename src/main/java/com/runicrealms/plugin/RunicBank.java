@@ -13,6 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashSet;
 
+// todo: to optimize, don't save bank on-close every time. Enable a queue system like core
 public final class RunicBank extends JavaPlugin implements Listener {
 
     private static RunicBank plugin;
@@ -42,6 +43,7 @@ public final class RunicBank extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(), this);
         getServer().getPluginManager().registerEvents(new BankNPCListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
+        getServer().getPluginManager().registerEvents(this, this);
 
         // initialize NPCs
         initializeBankNPCs();
