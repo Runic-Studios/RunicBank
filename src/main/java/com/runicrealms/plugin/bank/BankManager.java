@@ -1,21 +1,22 @@
 package com.runicrealms.plugin.bank;
 
+import com.runicrealms.plugin.player.cache.PlayerCache;
+import com.runicrealms.plugin.util.DataUtil;
+import com.runicrealms.runiccharacters.api.RunicCharactersApi;
+import com.runicrealms.runiccharacters.config.UserConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.UUID;
 
 public class BankManager {
 
     private HashMap<UUID, BankStorage> storages;
-    private HashSet<PlayerDataObject> playerDataObjects;
 
     public BankManager() {
         this.storages = new HashMap<>();
-        playerDataObjects = new HashSet<>();
     }
 
     // TODO: CREATE QUEUE TO SAVE PLAYER DATA OBJECTS FROM CORE
@@ -36,16 +37,30 @@ public class BankManager {
         pl.playSound(pl.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
     }
 
-    public HashSet<PlayerDataObject> getPlayerDataObjects() {
-        return playerDataObjects;
+    /**
+     * Writes data async
+     */
+    public void saveQueuedFiles(boolean limitSize) {
+//        int limit;
+//        if (limitSize) {
+//            limit = (int) Math.ceil(queuedCaches.size() / 4);
+//        } else {
+//            limit = queuedCaches.size();
+//        }
+//        UserConfig userConfig;
+//        for (int i = 0; i < limit; i++) {
+//            if (queuedCaches.size() < 1) continue;
+//            if (!queuedCaches.iterator().hasNext()) continue;
+//            PlayerCache queued = queuedCaches.iterator().next();
+//            userConfig = RunicCharactersApi.getUserConfig(queued.getPlayerID());
+//            setFieldsSaveFile(queued, userConfig);
+//            queuedCaches.remove(queued);
+//        }
+        for (UUID uuid : storages.keySet())
+            DataUtil.saveData(uuid);
     }
 
-    public PlayerDataObject getPlayerDataObject(UUID uuid) {
-        for (PlayerDataObject playerDataObject : playerDataObjects) {
-            if (playerDataObject.getUuid() == uuid) return playerDataObject;
-        }
-        return null;
+    public HashMap<UUID, BankStorage> getStorages() {
+        return this.storages;
     }
-
-    public HashMap<UUID, BankStorage> getStorages() { return this.storages; }
 }

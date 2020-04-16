@@ -7,21 +7,21 @@ import org.bukkit.inventory.ItemStack;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class PlayerDataObject {
+public class PlayerDataWrapper {
 
     private int maxPageIndex;
     private UUID uuid;
     private HashMap<Integer, ItemStack[]> bankInventories;
 
-    public PlayerDataObject(UUID uuid) {
+    public PlayerDataWrapper(UUID uuid) {
         PlayerMongoData playerMongoData = new PlayerMongoData(uuid.toString());
         this.maxPageIndex = playerMongoData.get("bank.max_page_index", Integer.class);
         this.uuid = uuid;
         bankInventories = new HashMap<>();
-        for (int i = 0; i < maxPageIndex; i++) {
+        for (int i = 0; i <= maxPageIndex; i++) {
             String bankInventory = playerMongoData.get("bank.pages." + i, String.class);
             if (bankInventory != null)
-                bankInventories.put(i, DatabaseUtil.loadInventory(bankInventory));
+                bankInventories.put(i, DatabaseUtil.loadInventory(bankInventory, 54));
         }
     }
 

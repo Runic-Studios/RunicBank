@@ -1,7 +1,7 @@
 package com.runicrealms.plugin.util;
 
 import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.bank.PlayerDataObject;
+import com.runicrealms.plugin.bank.BankStorage;
 import com.runicrealms.plugin.database.PlayerMongoData;
 
 import java.util.UUID;
@@ -21,7 +21,13 @@ public class DataUtil {
             mongoData.save();
         }
 
-        PlayerDataObject playerDataObject = new PlayerDataObject(uuid);
-        RunicBank.getBankManager().getPlayerDataObjects().add(playerDataObject);
+        BankStorage storage = new BankStorage(0, uuid);
+        RunicBank.getBankManager().getStorages().put(uuid, storage);
+    }
+
+    public static void saveData(UUID uuid) {
+        BankStorage storage = RunicBank.getBankManager().getStorages().get(uuid);
+        storage.getPlayerDataWrapper().saveData();
+        RunicBank.getBankManager().getStorages().remove(uuid);
     }
 }

@@ -6,11 +6,14 @@ import com.runicrealms.plugin.listener.PlayerQuitListener;
 import com.runicrealms.plugin.listener.BankNPCListener;
 import com.runicrealms.plugin.listener.PlayerJoinListener;
 import com.runicrealms.runicrestart.api.RunicRestartApi;
+import com.runicrealms.runicrestart.api.ServerShutdownEvent;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashSet;
 
-public final class RunicBank extends JavaPlugin {
+public final class RunicBank extends JavaPlugin implements Listener {
 
     private static RunicBank plugin;
     private static BankManager bankManager;
@@ -143,5 +146,18 @@ public final class RunicBank extends JavaPlugin {
         plugin = null;
         bankManager = null;
         bankNPCs = null;
+    }
+
+    @EventHandler
+    public void onRunicShutdown(ServerShutdownEvent e) {
+        /*
+        Save current state of player data
+         */
+        getLogger().info(" §cRunicBank has been disabled.");
+        getBankManager().saveQueuedFiles(false);
+        /*
+        Notify RunicRestart
+         */
+        RunicRestartApi.markPluginSaved("bank");
     }
 }

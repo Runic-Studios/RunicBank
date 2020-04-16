@@ -1,6 +1,5 @@
 package com.runicrealms.plugin.bank;
 
-import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.item.util.ItemRemover;
 import com.runicrealms.plugin.util.Util;
 import com.runicrealms.plugin.utilities.CurrencyUtil;
@@ -19,23 +18,23 @@ public class BankStorage {
     private int currentPage;
     private Inventory bankInv;
     private String bankTitle = "";
-    private PlayerDataObject playerDataObject;
+    private PlayerDataWrapper playerDataWrapper;
 
-    BankStorage(int currentPage, UUID ownerID) {
+    public BankStorage(int currentPage, UUID ownerID) {
         this.currentPage = currentPage;
+        this.playerDataWrapper = new PlayerDataWrapper(ownerID);
         this.bankInv = getNewStorage();
         Player pl = Bukkit.getPlayer(ownerID);
         if (pl == null) return;
         this.bankTitle = ChatColor.translateAlternateColorCodes
                 ('&', "&f&l" + pl.getName() + "&6&l's Bank");
-        this.playerDataObject = RunicBank.getBankManager().getPlayerDataObject(ownerID);
     }
 
     /**
      * Display specified page from virtual memory.
      */
     void displayPage(int page) {
-        Player pl = Bukkit.getPlayer(this.playerDataObject.getUuid());
+        Player pl = Bukkit.getPlayer(this.playerDataWrapper.getUuid());
         if (pl == null) return;
         this.bankInv = getNewStorage();
         // fill top row with black panes
@@ -45,11 +44,11 @@ public class BankStorage {
         this.bankInv.setItem(5, Util.menuItem(Material.BLACK_STAINED_GLASS_PANE, "&r", ""));
         // menu buttons
         this.bankInv.setItem(4, Util.menuItem(Material.YELLOW_STAINED_GLASS_PANE, "&6&lBank of Alterra", "&7Welcome to your bank"));
-        this.bankInv.setItem(6, Util.menuItem(Material.LIGHT_BLUE_STAINED_GLASS_PANE, "&a&lAdd Page &f&l[&a&l" + (playerDataObject.getMaxPageIndex()+1) + "&f&l/5]", "&7Purchase a new bank page"));
+        this.bankInv.setItem(6, Util.menuItem(Material.LIGHT_BLUE_STAINED_GLASS_PANE, "&a&lAdd Page &f&l[&a&l" + (playerDataWrapper.getMaxPageIndex()+1) + "&f&l/5]", "&7Purchase a new bank page"));
         this.bankInv.setItem(7, Util.menuItem(Material.GREEN_STAINED_GLASS_PANE, "&f&lPrevious Page", "&7Display the previous page in your bank"));
         this.bankInv.setItem(8, Util.menuItem(Material.RED_STAINED_GLASS_PANE, "&f&lNext Page", "&7Display the next page in your bank"));
         // load page from virtual memory
-        ItemStack[] pageContents = playerDataObject.getInventory(page);
+        ItemStack[] pageContents = playerDataWrapper.getInventory(page);
         for (int i = 9; i < 54; i++) {
             if (pageContents[i] != null) {
                 ItemStack item = pageContents[i];
@@ -66,7 +65,7 @@ public class BankStorage {
 
         Player pl = Bukkit.getPlayer(uuid);
         if (pl == null) return;
-        int maxIndex = playerDataObject.getMaxPageIndex();
+        int maxIndex = playerDataWrapper.getMaxPageIndex();
         int price = (int) Math.pow(2, maxIndex + 6);
 
         if (mat != Material.SLIME_BALL) {
@@ -85,10 +84,11 @@ public class BankStorage {
                 return;
             }
             ItemRemover.takeItem(pl, CurrencyUtil.goldCoin(), price);
-            playerDataObject.setMaxPageIndex(maxIndex+1);
+            playerDataWrapper.setMaxPageIndex(maxIndex+1);
+            playerDataWrapper.getBankInventories().put(maxIndex+1, new ItemStack[54]);
             pl.playSound(pl.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
             pl.sendMessage(ChatColor.GREEN + "You purchased a new bank page!");
-            playerDataObject.saveData();
+            playerDataWrapper.saveData();
             pl.closeInventory();
         }
     }
@@ -112,7 +112,7 @@ public class BankStorage {
     public void nextPage(UUID uuid) {
         Player pl = Bukkit.getPlayer(uuid);
         if (pl == null) return;
-        int currentMax = playerDataObject.getMaxPageIndex();
+        int currentMax = playerDataWrapper.getMaxPageIndex();
         if (currentPage >= currentMax) return;
         // update the virtual memory page
         savePage();
@@ -125,7 +125,7 @@ public class BankStorage {
      */
     public void savePage() {
         // clear the current memory page
-        ItemStack[] currentInv = playerDataObject.getInventory(currentPage);
+        ItemStack[] currentInv = playerDataWrapper.getInventory(currentPage);
         for (int i = 0; i < 54; i++) {
             currentInv[i] = bankInv.getItem(i);
         }
@@ -136,17 +136,11 @@ public class BankStorage {
      */
     private Inventory getNewStorage() {
         try {
-            Player pl = Bukkit.getPlayer(playerDataObject.getUuid());
+            Player pl = Bukkit.getPlayer(playerDataWrapper.getUuid());
             if (pl == null) return null;
             String name = bankTitle;
             return Bukkit.createInventory(pl, 54, name);
         } catch (NullPointerException e) {
-            if (playerDataObject == null) {
-                Bukkit.broadcastMessage("data object is null");
-            }
-            if (Bukkit.getPlayer(playerDataObject.getUuid()) == null) {
-                Bukkit.broadcastMessage("player is null");
-            }
             return null;
         }
     }
@@ -165,5 +159,9 @@ public class BankStorage {
 
     public String getBankTitle() {
         return bankTitle;
+    }
+
+    public PlayerDataWrapper getPlayerDataWrapper() {
+        return playerDataWrapper;
     }
 }
