@@ -1,9 +1,10 @@
 package com.runicrealms.plugin;
 
 import com.runicrealms.plugin.bank.BankManager;
-import com.runicrealms.plugin.event.ClickEvent;
-import com.runicrealms.plugin.event.LogoutEvent;
+import com.runicrealms.plugin.listener.BankClickListener;
+import com.runicrealms.plugin.listener.PlayerQuitListener;
 import com.runicrealms.plugin.listener.BankNPCListener;
+import com.runicrealms.plugin.listener.PlayerJoinListener;
 import com.runicrealms.runicrestart.api.RunicRestartApi;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -34,9 +35,10 @@ public final class RunicBank extends JavaPlugin {
         saveConfig();
 
         // register events
-        getServer().getPluginManager().registerEvents(new ClickEvent(), this);
-        getServer().getPluginManager().registerEvents(new LogoutEvent(), this);
+        getServer().getPluginManager().registerEvents(new BankClickListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerQuitListener(), this);
         getServer().getPluginManager().registerEvents(new BankNPCListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
 
         // initialize NPCs
         initializeBankNPCs();

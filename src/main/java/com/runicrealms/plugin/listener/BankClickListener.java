@@ -1,4 +1,4 @@
-package com.runicrealms.plugin.event;
+package com.runicrealms.plugin.listener;
 
 import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.bank.BankStorage;
@@ -10,7 +10,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.PlayerInventory;
 
-public class ClickEvent implements Listener {
+public class BankClickListener implements Listener {
 
     @EventHandler
     public void clickEvent(InventoryClickEvent e) {
@@ -55,7 +55,6 @@ public class ClickEvent implements Listener {
         if (e.getView().getTitle().equals(bankTitle)) {
             BankStorage storage = RunicBank.getBankManager().getStorages().get(pl.getUniqueId());
             storage.savePage(); // to array
-            storage.saveContents(); // to flat file
         }
     }
 }
