@@ -55,6 +55,9 @@ public class BankClickListener implements Listener {
         if (e.getView().getTitle().equals(bankTitle)) {
             BankStorage storage = RunicBank.getBankManager().getStorages().get(pl.getUniqueId());
             storage.savePage(); // to array
+            RunicBank.getBankManager().getQueuedStorages().removeIf
+                    (n -> (n.getPlayerDataWrapper().getUuid() == pl.getUniqueId())); // prevent duplicates
+            RunicBank.getBankManager().getQueuedStorages().add(storage); // queue the file for saving
         }
     }
 }

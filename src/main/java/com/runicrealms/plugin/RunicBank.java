@@ -143,13 +143,6 @@ public final class RunicBank extends JavaPlugin implements Listener {
         return scrapperNPCs;
     }
 
-    @Override
-    public void onDisable() {
-        plugin = null;
-        bankManager = null;
-        bankNPCs = null;
-    }
-
     @EventHandler
     public void onRunicShutdown(ServerShutdownEvent e) {
         /*
@@ -161,5 +154,12 @@ public final class RunicBank extends JavaPlugin implements Listener {
         Notify RunicRestart
          */
         RunicRestartApi.markPluginSaved("bank");
+    }
+
+    @Override
+    public void onDisable() {
+        plugin = null;
+        bankManager = null;
+        bankNPCs = null;
     }
 }

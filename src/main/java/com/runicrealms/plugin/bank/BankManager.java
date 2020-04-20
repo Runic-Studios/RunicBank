@@ -1,25 +1,34 @@
 package com.runicrealms.plugin.bank;
 
-import com.runicrealms.plugin.player.cache.PlayerCache;
+import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.util.DataUtil;
-import com.runicrealms.runiccharacters.api.RunicCharactersApi;
-import com.runicrealms.runiccharacters.config.UserConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class BankManager {
 
-    private HashMap<UUID, BankStorage> storages;
+    private static final int SAVE_PERIOD = 15;
+    private ConcurrentHashMap<UUID, BankStorage> storages;
+    private volatile ConcurrentLinkedQueue<BankStorage> queuedStorages;
 
     public BankManager() {
-        this.storages = new HashMap<>();
-    }
 
-    // TODO: CREATE QUEUE TO SAVE PLAYER DATA OBJECTS FROM CORE
+        this.storages = new ConcurrentHashMap<>();
+        this.queuedStorages = new ConcurrentLinkedQueue<>();
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                saveQueuedFiles(true);
+            }
+        }.runTaskTimerAsynchronously(RunicBank.getInstance(), (100+SAVE_PERIOD), SAVE_PERIOD*20); // wait for save, 15 sec period
+    }
 
     public void openBank(UUID uuid) {
         Player pl = Bukkit.getPlayer(uuid);
@@ -41,26 +50,27 @@ public class BankManager {
      * Writes data async
      */
     public void saveQueuedFiles(boolean limitSize) {
-//        int limit;
-//        if (limitSize) {
-//            limit = (int) Math.ceil(queuedCaches.size() / 4);
-//        } else {
-//            limit = queuedCaches.size();
-//        }
-//        UserConfig userConfig;
-//        for (int i = 0; i < limit; i++) {
-//            if (queuedCaches.size() < 1) continue;
-//            if (!queuedCaches.iterator().hasNext()) continue;
-//            PlayerCache queued = queuedCaches.iterator().next();
-//            userConfig = RunicCharactersApi.getUserConfig(queued.getPlayerID());
-//            setFieldsSaveFile(queued, userConfig);
-//            queuedCaches.remove(queued);
-//        }
-        for (UUID uuid : storages.keySet())
-            DataUtil.saveData(uuid);
+        int limit;
+        if (limitSize) {
+            limit = (int) Math.ceil(queuedStorages.size() / 4.0);
+        } else {
+            limit = queuedStorages.size();
+        }
+        if (limit < 1)
+            return;
+        for (int i = 0; i < limit; i++) {
+            if (queuedStorages.size() < 1) continue;
+            BankStorage queued = queuedStorages.iterator().next();
+            DataUtil.saveData(queued.getPlayerDataWrapper().getUuid());
+            queuedStorages.remove(queued);
+        }
     }
 
-    public HashMap<UUID, BankStorage> getStorages() {
-        return this.storages;
+    public ConcurrentHashMap<UUID, BankStorage> getStorages() {
+        return storages;
+    }
+
+    public ConcurrentLinkedQueue<BankStorage> getQueuedStorages() {
+        return queuedStorages;
     }
 }
