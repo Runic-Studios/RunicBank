@@ -42,6 +42,7 @@ public class BankManager {
         }
         storage.displayPage(0);
         storage.setCurrentPage(0);
+        storage.setOpened(true);
 
         pl.playSound(pl.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
     }

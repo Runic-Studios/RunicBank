@@ -15,12 +15,14 @@ import java.util.UUID;
 
 public class BankStorage {
 
+    private boolean isOpen; // for hacked clients
     private int currentPage;
     private Inventory bankInv;
     private String bankTitle = "";
     private PlayerDataWrapper playerDataWrapper;
 
     public BankStorage(int currentPage, UUID ownerID) {
+        this.isOpen = false;
         this.currentPage = currentPage;
         this.playerDataWrapper = new PlayerDataWrapper(ownerID);
         this.bankInv = getNewStorage();
@@ -145,6 +147,10 @@ public class BankStorage {
         }
     }
 
+    public boolean getOpened() {
+        return isOpen;
+    }
+
     private int getCurrentPage() {
         return currentPage;
     }
@@ -163,5 +169,9 @@ public class BankStorage {
 
     public PlayerDataWrapper getPlayerDataWrapper() {
         return playerDataWrapper;
+    }
+
+    public void setOpened(boolean isOpen) {
+        this.isOpen = isOpen;
     }
 }

@@ -4,6 +4,8 @@ import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.util.DataUtil;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -56,6 +58,12 @@ public class BankNPCListener implements Listener {
         Bank-specific stuff
          */
         if (RunicBank.getBankNPCs().contains(event.getNPC().getId())) {
+            if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()) != null
+                    && RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getOpened()) {
+                pl.playSound(pl.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.5f, 1.0f);
+                pl.sendMessage(ChatColor.RED + "The bank is already open!");
+                return;
+            }
             if (!RunicBank.getBankManager().getStorages().containsKey(pl.getUniqueId())) {
                 DataUtil.createBankOrLoad(pl.getUniqueId());
             }

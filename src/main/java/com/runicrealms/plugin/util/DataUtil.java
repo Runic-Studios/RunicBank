@@ -29,7 +29,6 @@ public class DataUtil {
         if (RunicBank.getBankManager().getStorages().get(uuid) != null) {
             BankStorage storage = RunicBank.getBankManager().getStorages().get(uuid);
             storage.getPlayerDataWrapper().saveData();
-            RunicBank.getBankManager().getStorages().remove(uuid);
         }
     }
 }
