@@ -1,8 +1,8 @@
 package com.runicrealms.plugin.listener;
 
 import com.runicrealms.plugin.RunicCore;
+import com.runicrealms.plugin.character.api.CharacterLoadEvent;
 import com.runicrealms.plugin.util.DataUtil;
-import com.runicrealms.runiccharacters.api.events.CharacterLoadEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
