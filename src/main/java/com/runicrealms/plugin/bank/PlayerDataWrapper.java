@@ -1,7 +1,9 @@
 package com.runicrealms.plugin.bank;
 
+import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.database.PlayerMongoData;
 import com.runicrealms.plugin.database.util.DatabaseUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
@@ -46,11 +48,16 @@ public class PlayerDataWrapper {
     }
 
     public void saveData() {
-        PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
-        mongoData.set("bank.max_page_index", maxPageIndex);
-        for (Integer inv : bankInventories.keySet()) {
-            mongoData.set("bank.pages." + inv, DatabaseUtil.serializeInventory(bankInventories.get(inv)));
-        }
-        mongoData.save();
+        Bukkit.getScheduler().runTaskAsynchronously(RunicBank.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
+                mongoData.set("bank.max_page_index", maxPageIndex);
+                for (Integer inv : bankInventories.keySet()) {
+                    mongoData.set("bank.pages." + inv, DatabaseUtil.serializeInventory(bankInventories.get(inv)));
+                }
+                mongoData.save();
+            }
+        });
     }
 }
