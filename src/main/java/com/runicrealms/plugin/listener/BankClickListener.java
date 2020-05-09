@@ -20,10 +20,12 @@ public class BankClickListener implements Listener {
         // disable interactions on first 9 slots
         if (RunicBank.getBankManager().getStorages() == null) {
             Bukkit.getLogger().info("bank manager storages in null");
+            pl.closeInventory();
             return;
         }
         if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()) == null) {
             Bukkit.getLogger().info("bank storage for player");
+            pl.closeInventory();
             return;
         }
         String bankTitle = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankTitle();
