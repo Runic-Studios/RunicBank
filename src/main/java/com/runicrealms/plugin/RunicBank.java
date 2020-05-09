@@ -24,8 +24,12 @@ public final class RunicBank extends JavaPlugin implements Listener {
     private static HashSet<Integer> jewelerNPCs;
     private static HashSet<Integer> scrapperNPCs;
 
-    public static RunicBank getInstance() { return plugin; }
-    public static BankManager getBankManager() { return bankManager; }
+    public static RunicBank getInstance() {
+        return plugin;
+    }
+    public static BankManager getBankManager() {
+        return bankManager;
+    }
 
     @Override
     public void onEnable() {
@@ -149,7 +153,7 @@ public final class RunicBank extends JavaPlugin implements Listener {
         Save current state of player data
          */
         getLogger().info(" §cRunicBank has been disabled.");
-        getBankManager().saveQueuedFiles(false);
+        getBankManager().saveQueuedFiles(false, false);
         /*
         Notify RunicRestart
          */

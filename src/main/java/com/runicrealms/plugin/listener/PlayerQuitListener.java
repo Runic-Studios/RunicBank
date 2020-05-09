@@ -15,7 +15,7 @@ public class PlayerQuitListener implements Listener {
     @EventHandler
     public void onLogout(CharacterQuitEvent e) {
         Bukkit.getScheduler().scheduleAsyncDelayedTask(RunicBank.getInstance(), () -> {
-            DataUtil.saveData(e.getPlayer().getUniqueId());
+            DataUtil.saveData(e.getPlayer().getUniqueId(), true);
             RunicBank.getBankManager().getStorages().remove(e.getPlayer().getUniqueId());
         }, 1L);
     }

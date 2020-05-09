@@ -25,10 +25,10 @@ public class DataUtil {
         RunicBank.getBankManager().getStorages().put(uuid, storage);
     }
 
-    public static void saveData(UUID uuid) {
+    public static void saveData(UUID uuid, boolean saveAsync) {
         if (RunicBank.getBankManager().getStorages().get(uuid) != null) {
             BankStorage storage = RunicBank.getBankManager().getStorages().get(uuid);
-            storage.getPlayerDataWrapper().saveData();
+            storage.getPlayerDataWrapper().saveData(saveAsync);
         }
     }
 }

@@ -25,7 +25,7 @@ public class BankManager {
         new BukkitRunnable() {
             @Override
             public void run() {
-                saveQueuedFiles(true);
+                saveQueuedFiles(true, true);
             }
         }.runTaskTimerAsynchronously(RunicBank.getInstance(), (100+SAVE_PERIOD), SAVE_PERIOD*20); // wait for save, 15 sec period
     }
@@ -50,7 +50,7 @@ public class BankManager {
     /**
      * Writes data async
      */
-    public void saveQueuedFiles(boolean limitSize) {
+    public void saveQueuedFiles(boolean limitSize, boolean saveAsync) {
         int limit;
         if (limitSize) {
             limit = (int) Math.ceil(queuedStorages.size() / 4.0);
@@ -62,7 +62,7 @@ public class BankManager {
         for (int i = 0; i < limit; i++) {
             if (queuedStorages.size() < 1) continue;
             BankStorage queued = queuedStorages.iterator().next();
-            DataUtil.saveData(queued.getPlayerDataWrapper().getUuid());
+            DataUtil.saveData(queued.getPlayerDataWrapper().getUuid(), saveAsync);
             queuedStorages.remove(queued);
         }
     }

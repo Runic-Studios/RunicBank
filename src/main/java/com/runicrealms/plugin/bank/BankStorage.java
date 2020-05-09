@@ -90,7 +90,7 @@ public class BankStorage {
             playerDataWrapper.getBankInventories().put(maxIndex+1, new ItemStack[54]);
             pl.playSound(pl.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
             pl.sendMessage(ChatColor.GREEN + "You purchased a new bank page!");
-            playerDataWrapper.saveData();
+            playerDataWrapper.saveData(true);
             pl.closeInventory();
         }
     }

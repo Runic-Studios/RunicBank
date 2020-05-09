@@ -47,17 +47,25 @@ public class PlayerDataWrapper {
         this.maxPageIndex = maxPageIndex;
     }
 
-    public void saveData() {
-        Bukkit.getScheduler().runTaskAsynchronously(RunicBank.getInstance(), new Runnable() {
-            @Override
-            public void run() {
+    public void saveData(boolean saveAsync) {
+        if (saveAsync) {
+            Bukkit.getScheduler().runTaskAsynchronously(RunicBank.getInstance(), () -> {
                 PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
                 mongoData.set("bank.max_page_index", maxPageIndex);
                 for (Integer inv : bankInventories.keySet()) {
                     mongoData.set("bank.pages." + inv, DatabaseUtil.serializeInventory(bankInventories.get(inv)));
                 }
                 mongoData.save();
-            }
-        });
+            });
+        } else {
+            Bukkit.getScheduler().runTask(RunicBank.getInstance(), () -> {
+                PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
+                mongoData.set("bank.max_page_index", maxPageIndex);
+                for (Integer inv : bankInventories.keySet()) {
+                    mongoData.set("bank.pages." + inv, DatabaseUtil.serializeInventory(bankInventories.get(inv)));
+                }
+                mongoData.save();
+            });
+        }
     }
 }
