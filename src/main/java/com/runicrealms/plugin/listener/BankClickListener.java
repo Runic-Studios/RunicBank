@@ -17,7 +17,8 @@ public class BankClickListener implements Listener {
     public void clickEvent(InventoryClickEvent e) {
 
         // verify that we're looking at a bank inv
-        if (e.getView().getTitle().equals
+        if (RunicBank.getBankManager().getStorages().get(e.getWhoClicked().getUniqueId()) != null
+                && e.getView().getTitle().equals
                 (RunicBank.getBankManager().getStorages().get(e.getWhoClicked().getUniqueId()).getBankTitle())) {
 
             if (!(e.getWhoClicked() instanceof Player)) return;
@@ -29,6 +30,8 @@ public class BankClickListener implements Listener {
                 pl.closeInventory();
                 return;
             }
+
+            // todo: this will never fire! fix the handler
             if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()) == null) {
                 Bukkit.getLogger().info("Error: bank storage for " + pl.getName() + " is null!");
                 pl.closeInventory();

@@ -19,7 +19,7 @@ public class BankStorage {
     private int currentPage;
     private Inventory bankInv;
     private String bankTitle = "";
-    private PlayerDataWrapper playerDataWrapper;
+    private final PlayerDataWrapper playerDataWrapper;
 
     public BankStorage(int currentPage, UUID ownerID) {
         this.isOpen = false;

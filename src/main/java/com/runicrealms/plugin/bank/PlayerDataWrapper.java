@@ -12,8 +12,8 @@ import java.util.UUID;
 public class PlayerDataWrapper {
 
     private int maxPageIndex;
-    private UUID uuid;
-    private HashMap<Integer, ItemStack[]> bankInventories;
+    private final UUID uuid;
+    private final HashMap<Integer, ItemStack[]> bankInventories;
 
     public PlayerDataWrapper(UUID uuid) {
         PlayerMongoData playerMongoData = new PlayerMongoData(uuid.toString());
