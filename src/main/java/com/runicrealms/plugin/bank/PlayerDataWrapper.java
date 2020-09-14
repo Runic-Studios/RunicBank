@@ -58,14 +58,12 @@ public class PlayerDataWrapper {
                 mongoData.save();
             });
         } else {
-            //Bukkit.getScheduler().runTask(RunicBank.getInstance(), () -> {
-                PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
-                mongoData.set("bank.max_page_index", maxPageIndex);
-                for (Integer inv : bankInventories.keySet()) {
-                    mongoData.set("bank.pages." + inv, DatabaseUtil.serializeInventory(bankInventories.get(inv)));
-                }
-                mongoData.save();
-            //});
+            PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
+            mongoData.set("bank.max_page_index", maxPageIndex);
+            for (Integer inv : bankInventories.keySet()) {
+                mongoData.set("bank.pages." + inv, DatabaseUtil.serializeInventory(bankInventories.get(inv)));
+            }
+            mongoData.save();
         }
     }
 }

@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class BankManager {
 
     private static final int SAVE_PERIOD = 15;
-    private ConcurrentHashMap<UUID, BankStorage> storages;
-    private volatile ConcurrentLinkedQueue<BankStorage> queuedStorages;
+    private final ConcurrentHashMap<UUID, BankStorage> storages;
+    private final ConcurrentLinkedQueue<BankStorage> queuedStorages;
 
     public BankManager() {
 
