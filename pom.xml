@@ -6,7 +6,7 @@
 
     <groupId>com.runicrealms.plugin</groupId>
     <artifactId>RunicBank</artifactId>
-    <version>1.15.2</version>
+    <version>1.16.4</version>
     <packaging>jar</packaging>
 
     <name>RunicBank</name>
@@ -111,28 +111,28 @@
             <artifactId>RunicCore</artifactId>
             <version>1.15.2</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/RunicCore-1.15.2.jar</systemPath>
+            <systemPath>${project.basedir}/lib/RunicCore-1.16.4.jar</systemPath>
         </dependency>
         <!-- RunicRestart -->
         <dependency>
             <groupId>com.runicrealms.plugin</groupId>
             <artifactId>RunicRestart</artifactId>
-            <version>1.15.2</version>
+            <version>1.16.4</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/RunicRestart-1.15.2.jar</systemPath>
+            <systemPath>${project.basedir}/lib/RunicRestart-1.16.4.jar</systemPath>
         </dependency>
         <!-- Spigot API -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.15.2-R0.1-SNAPSHOT</version>
+            <version>1.16.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!-- Paper API -->
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.15.2-R0.1-SNAPSHOT</version>
+            <version>1.16.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
