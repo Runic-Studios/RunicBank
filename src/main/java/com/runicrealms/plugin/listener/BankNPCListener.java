@@ -59,7 +59,7 @@ public class BankNPCListener implements Listener {
          */
         if (RunicBank.getBankNPCs().contains(event.getNPC().getId())) {
             if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()) != null
-                    && RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getOpened()) {
+                    && RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).isOpened()) {
                 pl.playSound(pl.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.5f, 1.0f);
                 pl.sendMessage(ChatColor.RED + "The bank is already open!");
                 return;

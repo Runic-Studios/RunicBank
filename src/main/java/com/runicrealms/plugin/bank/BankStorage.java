@@ -147,7 +147,7 @@ public class BankStorage {
         }
     }
 
-    public boolean getOpened() {
+    public boolean isOpened() {
         return isOpen;
     }
 

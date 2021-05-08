@@ -4,6 +4,7 @@ import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.database.PlayerMongoData;
 import com.runicrealms.plugin.database.util.DatabaseUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
@@ -22,8 +23,13 @@ public class PlayerDataWrapper {
         bankInventories = new HashMap<>();
         for (int i = 0; i <= maxPageIndex; i++) {
             String bankInventory = playerMongoData.get("bank.pages." + i, String.class);
-            if (bankInventory != null)
-                bankInventories.put(i, DatabaseUtil.loadInventory(bankInventory, 54));
+            if (bankInventory != null) {
+                try {
+                    bankInventories.put(i, DatabaseUtil.loadInventory(bankInventory, 54));
+                } catch (Exception e) {
+                    Bukkit.getLogger().info(ChatColor.DARK_RED + "Ho no! Bank found end of file exception.");
+                }
+            }
         }
     }
 
