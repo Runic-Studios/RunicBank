@@ -13,7 +13,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <fileOutput>${user.home}/Desktop/FTR Server Assets/~ Local Server/plugins</fileOutput>
+        <fileOutput>${project.basedir}/../lib</fileOutput>
     </properties>
 
     <build>
@@ -90,28 +90,23 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
-        <!-- Citizens Repo -->
-        <repository>
-            <id>everything</id>
-            <url>http://repo.citizensnpcs.co/</url>
-        </repository>
     </repositories>
     <dependencies>
-        <!-- CitizensAPI -->
-        <dependency>
-            <groupId>net.citizensnpcs</groupId>
-            <artifactId>citizens</artifactId>
-            <version>2.0.26-SNAPSHOT</version>
-            <type>jar</type>
-            <scope>provided</scope>
-        </dependency>
         <!-- RunicCore -->
         <dependency>
             <groupId>com.runicrealms.plugin</groupId>
             <artifactId>RunicCore</artifactId>
-            <version>1.15.2</version>
+            <version>1.16.4</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/RunicCore-1.16.4.jar</systemPath>
+            <systemPath>${project.basedir}/../lib/RunicCore-1.16.4.jar</systemPath>
+        </dependency>
+        <!-- RunicNpcs -->
+        <dependency>
+            <groupId>com.runicrealms.runicnpcs</groupId>
+            <artifactId>RunicNpcs</artifactId>
+            <version>1.16.4</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/../lib/RunicNpcs-1.16.4.jar</systemPath>
         </dependency>
         <!-- RunicRestart -->
         <dependency>
@@ -119,7 +114,7 @@
             <artifactId>RunicRestart</artifactId>
             <version>1.16.4</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/RunicRestart-1.16.4.jar</systemPath>
+            <systemPath>${project.basedir}/../lib/RunicRestart-1.16.4.jar</systemPath>
         </dependency>
         <!-- Spigot API -->
         <dependency>

@@ -2,7 +2,7 @@ name: RunicBank
 version: ${project.version}
 main: com.runicrealms.plugin.RunicBank
 api-version: 1.13
-depend: [RunicRestart]
+depend: [ RunicNpcs, RunicRestart]
 commands:
   runicbank:
     usage: /<commands>
