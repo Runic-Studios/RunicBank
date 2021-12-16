@@ -2,7 +2,10 @@ package com.runicrealms.plugin.listener;
 
 import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.bank.BankStorage;
+import com.runicrealms.runicitems.RunicItemsAPI;
+import com.runicrealms.runicitems.item.RunicItem;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,39 +25,48 @@ public class BankClickListener implements Listener {
                 (RunicBank.getBankManager().getStorages().get(e.getWhoClicked().getUniqueId()).getBankTitle())) {
 
             if (!(e.getWhoClicked() instanceof Player)) return;
-            Player pl = (Player) e.getWhoClicked();
+            Player player = (Player) e.getWhoClicked();
 
             // disable interactions on first 9 slots
             if (RunicBank.getBankManager().getStorages() == null) {
                 Bukkit.getLogger().info("bank manager storages in null");
-                pl.closeInventory();
+                player.closeInventory();
                 return;
             }
 
             // todo: this will never fire! fix the handler
-            if (RunicBank.getBankManager().getStorages().get(pl.getUniqueId()) == null) {
-                Bukkit.getLogger().info("Error: bank storage for " + pl.getName() + " is null!");
-                pl.closeInventory();
+            if (RunicBank.getBankManager().getStorages().get(player.getUniqueId()) == null) {
+                Bukkit.getLogger().info("Error: bank storage for " + player.getName() + " is null!");
+                player.closeInventory();
                 return;
             }
-            String bankTitle = RunicBank.getBankManager().getStorages().get(pl.getUniqueId()).getBankTitle();
+
+            // disabled interactions w/ blocked items
+            RunicItem runicItem = RunicItemsAPI.getRunicItemFromItemStack(e.getCurrentItem());
+            if (runicItem != null && RunicItemsAPI.containsBlockedTag(runicItem)) {
+                e.setCancelled(true);
+                player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
+                player.sendMessage(ChatColor.RED + "This item cannot be stored in the bank!");
+            }
+
+            String bankTitle = RunicBank.getBankManager().getStorages().get(player.getUniqueId()).getBankTitle();
             if (e.getView().getTitle().equalsIgnoreCase(bankTitle)) {
-                if (e.getClickedInventory() != null
-                        && !(e.getClickedInventory() instanceof PlayerInventory)
-                        && e.getView().getTitle().equals(bankTitle) && e.getSlot() < 9) {
-                    pl.playSound(pl.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
-                    e.setCancelled(true);
-                    BankStorage storage = RunicBank.getBankManager().getStorages().get(pl.getUniqueId());
-                    switch (e.getSlot()) {
-                        case 6:
-                            storage.addPage(pl.getUniqueId(), e.getCurrentItem().getType());
-                            break;
-                        case 7:
-                            storage.prevPage(pl.getUniqueId());
-                            break;
-                        case 8:
-                            storage.nextPage(pl.getUniqueId());
-                            break;
+                if (e.getClickedInventory() != null && !(e.getClickedInventory() instanceof PlayerInventory) && e.getView().getTitle().equals(bankTitle)) {
+                    if (e.getSlot() < 9) {
+                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
+                        e.setCancelled(true);
+                        BankStorage storage = RunicBank.getBankManager().getStorages().get(player.getUniqueId());
+                        switch (e.getSlot()) {
+                            case 6:
+                                storage.addPage(player.getUniqueId(), e.getCurrentItem().getType());
+                                break;
+                            case 7:
+                                storage.prevPage(player.getUniqueId());
+                                break;
+                            case 8:
+                                storage.nextPage(player.getUniqueId());
+                                break;
+                        }
                     }
                 }
             }

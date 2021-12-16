@@ -9,9 +9,10 @@ import java.util.UUID;
 public class RunicBankAPI {
 
     /**
+     * A check to determine whether a player currently has their bank open
      *
-     * @param player
-     * @return
+     * @param player to check
+     * @return true if bank is open
      */
     public static boolean isViewingBank(Player player) {
         if (RunicBank.getBankManager().getStorages() == null) return false;
@@ -22,9 +23,10 @@ public class RunicBankAPI {
     }
 
     /**
+     * A check to determine whether a player currently has their bank open
      *
-     * @param uuid
-     * @return
+     * @param uuid of player to check
+     * @return true if bank is open
      */
     public static boolean isViewingBank(UUID uuid) {
         if (RunicBank.getBankManager().getStorages() == null) return false;
