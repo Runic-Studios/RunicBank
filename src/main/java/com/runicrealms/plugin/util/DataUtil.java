@@ -15,7 +15,14 @@ public class DataUtil {
 
         PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
 
-        if (mongoData.get("bank") == null) {
+        if ((!mongoData.has("bank"))
+                || (mongoData.has("bank.type")
+                && (!mongoData.get("bank.type", String.class).equalsIgnoreCase("runicitems")))) {
+
+            if (mongoData.has("bank")) {
+                mongoData.remove("bank");
+                mongoData.save();
+            }
             mongoData.set("bank.max_page_index", 0);
             mongoData.set("bank.pages.0", "");
             mongoData.save();

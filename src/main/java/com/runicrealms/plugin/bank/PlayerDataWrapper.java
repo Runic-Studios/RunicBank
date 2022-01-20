@@ -1,14 +1,19 @@
 package com.runicrealms.plugin.bank;
 
 import com.runicrealms.plugin.RunicBank;
+import com.runicrealms.plugin.database.Data;
 import com.runicrealms.plugin.database.PlayerMongoData;
-import com.runicrealms.plugin.database.util.DatabaseUtil;
+import com.runicrealms.runicitems.DupeManager;
+import com.runicrealms.runicitems.ItemManager;
+import com.runicrealms.runicitems.config.ItemLoader;
+import com.runicrealms.runicitems.item.RunicItem;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class PlayerDataWrapper {
 
@@ -22,13 +27,23 @@ public class PlayerDataWrapper {
         this.uuid = uuid;
         bankInventories = new HashMap<>();
         for (int i = 0; i <= maxPageIndex; i++) {
-            String bankInventory = playerMongoData.get("bank.pages." + i, String.class);
-            if (bankInventory != null) {
-                try {
-                    bankInventories.put(i, DatabaseUtil.loadInventory(bankInventory, 54));
-                } catch (Exception e) {
-                    Bukkit.getLogger().info(ChatColor.DARK_RED + "Ho no! Bank found end of file exception.");
+            if (playerMongoData.has("bank.pages." + i)) {
+                Data pageData = playerMongoData.getSection("bank.pages." + i);
+                ItemStack[] contents = new ItemStack[54];
+                for (String key : pageData.getKeys()) {
+                    if (!key.equalsIgnoreCase("type")) {
+                        try {
+                            RunicItem item = ItemLoader.loadItem(pageData.getSection(key), DupeManager.getNextItemId());
+                            if (item != null) {
+                                contents[Integer.parseInt(key)] = item.generateItem();
+                            }
+                        } catch (Exception exception) {
+                            Bukkit.getLogger().log(Level.WARNING, "[RunicItems] ERROR loading item " + key + " for player bank " + uuid);
+                            exception.printStackTrace();
+                        }
+                    }
                 }
+                bankInventories.put(i, contents);
             }
         }
     }
@@ -55,21 +70,29 @@ public class PlayerDataWrapper {
 
     public void saveData(boolean saveAsync) {
         if (saveAsync) {
-            Bukkit.getScheduler().runTaskAsynchronously(RunicBank.getInstance(), () -> {
-                PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
-                mongoData.set("bank.max_page_index", maxPageIndex);
-                for (Integer inv : bankInventories.keySet()) {
-                    mongoData.set("bank.pages." + inv, DatabaseUtil.serializeInventory(bankInventories.get(inv)));
-                }
-                mongoData.save();
-            });
+            Bukkit.getScheduler().runTaskAsynchronously(RunicBank.getInstance(), this::save);
         } else {
-            PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
-            mongoData.set("bank.max_page_index", maxPageIndex);
-            for (Integer inv : bankInventories.keySet()) {
-                mongoData.set("bank.pages." + inv, DatabaseUtil.serializeInventory(bankInventories.get(inv)));
-            }
-            mongoData.save();
+            save();
         }
+    }
+
+    private void save() {
+        PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
+        mongoData.set("bank.max_page_index", maxPageIndex);
+        if (mongoData.has("bank.pages")) mongoData.remove("bank.pages");
+        mongoData.set("bank.type", "runicitems");
+        mongoData.save();
+        for (Map.Entry<Integer, ItemStack[]> page : bankInventories.entrySet()) {
+            ItemStack[] contents = page.getValue();
+            for (int i = 0; i < contents.length; i++) {
+                if (contents[i] != null) {
+                    RunicItem runicItem = ItemManager.getRunicItemFromItemStack(contents[i]);
+                    if (runicItem != null) {
+                        runicItem.addToData(mongoData, "bank.pages." + page.getKey() + "." + i);
+                    }
+                }
+            }
+        }
+        mongoData.save();
     }
 }

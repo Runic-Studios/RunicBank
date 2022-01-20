@@ -1,7 +1,9 @@
 package com.runicrealms.plugin.listener;
 
 import com.runicrealms.plugin.RunicBank;
+import com.runicrealms.plugin.RunicCore;
 import com.runicrealms.plugin.bank.BankStorage;
+import com.runicrealms.plugin.player.cache.CacheManager;
 import com.runicrealms.runicitems.RunicItemsAPI;
 import com.runicrealms.runicitems.item.RunicItem;
 import org.bukkit.Bukkit;
@@ -87,9 +89,6 @@ public class BankClickListener implements Listener {
             BankStorage storage = RunicBank.getBankManager().getStorages().get(pl.getUniqueId());
             storage.savePage(); // to array
             storage.setOpened(false);
-            RunicBank.getBankManager().getQueuedStorages().removeIf
-                    (n -> (n.getPlayerDataWrapper().getUuid() == pl.getUniqueId())); // prevent duplicates
-            RunicBank.getBankManager().getQueuedStorages().add(storage); // queue the file for saving
         }
     }
 }

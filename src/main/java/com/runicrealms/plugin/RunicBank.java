@@ -2,7 +2,6 @@ package com.runicrealms.plugin;
 
 import com.runicrealms.plugin.bank.BankManager;
 import com.runicrealms.plugin.listener.BankClickListener;
-import com.runicrealms.plugin.listener.PlayerQuitListener;
 import com.runicrealms.plugin.listener.BankNPCListener;
 import com.runicrealms.plugin.listener.PlayerJoinListener;
 import com.runicrealms.runicrestart.api.RunicRestartApi;
@@ -40,7 +39,6 @@ public final class RunicBank extends JavaPlugin implements Listener {
 
         // register events
         getServer().getPluginManager().registerEvents(new BankClickListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerQuitListener(), this);
         getServer().getPluginManager().registerEvents(new BankNPCListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
         getServer().getPluginManager().registerEvents(this, this);
@@ -84,7 +82,7 @@ public final class RunicBank extends JavaPlugin implements Listener {
         Save current state of player data
          */
         getLogger().info(" §cRunicBank has been disabled.");
-        getBankManager().saveQueuedFiles(false, false);
+        // Used to be bank saving here, now handled by cache save event.
         /*
         Notify RunicRestart
          */
