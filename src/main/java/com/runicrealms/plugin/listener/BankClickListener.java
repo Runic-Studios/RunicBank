@@ -8,6 +8,7 @@ import com.runicrealms.runicitems.RunicItemsAPI;
 import com.runicrealms.runicitems.item.RunicItem;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -44,11 +45,13 @@ public class BankClickListener implements Listener {
             }
 
             // disabled interactions w/ blocked items
-            RunicItem runicItem = RunicItemsAPI.getRunicItemFromItemStack(e.getCurrentItem());
-            if (runicItem != null && RunicItemsAPI.containsBlockedTag(runicItem)) {
-                e.setCancelled(true);
-                player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
-                player.sendMessage(ChatColor.RED + "This item cannot be stored in the bank!");
+            if (e.getCurrentItem() != null && e.getCurrentItem().getType() != Material.AIR) {
+                RunicItem runicItem = RunicItemsAPI.getRunicItemFromItemStack(e.getCurrentItem());
+                if (runicItem != null && RunicItemsAPI.containsBlockedTag(runicItem)) {
+                    e.setCancelled(true);
+                    player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
+                    player.sendMessage(ChatColor.RED + "This item cannot be stored in the bank!");
+                }
             }
 
             String bankTitle = RunicBank.getBankManager().getStorages().get(player.getUniqueId()).getBankTitle();

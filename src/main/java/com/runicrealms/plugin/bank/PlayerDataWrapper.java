@@ -26,25 +26,35 @@ public class PlayerDataWrapper {
         this.maxPageIndex = playerMongoData.get("bank.max_page_index", Integer.class);
         this.uuid = uuid;
         bankInventories = new HashMap<>();
-        for (int i = 0; i <= maxPageIndex; i++) {
-            if (playerMongoData.has("bank.pages." + i)) {
-                Data pageData = playerMongoData.getSection("bank.pages." + i);
-                ItemStack[] contents = new ItemStack[54];
-                for (String key : pageData.getKeys()) {
-                    if (!key.equalsIgnoreCase("type")) {
-                        try {
-                            RunicItem item = ItemLoader.loadItem(pageData.getSection(key), DupeManager.getNextItemId());
-                            if (item != null) {
-                                contents[Integer.parseInt(key)] = item.generateItem();
+        if (((!playerMongoData.has("bank.type"))
+                || (!playerMongoData.get("bank.type", String.class).equalsIgnoreCase("runicitems")))
+                && playerMongoData.has("bank.pages")) {
+            playerMongoData.remove("bank.pages");
+            Bukkit.getScheduler().runTaskAsynchronously(RunicBank.getInstance(), this::save);
+        } else if (playerMongoData.has("bank.pages")) {
+            for (int i = 0; i <= maxPageIndex; i++) {
+                if (playerMongoData.has("bank.pages." + i)) {
+                    Data pageData = playerMongoData.getSection("bank.pages." + i);
+                    ItemStack[] contents = new ItemStack[54];
+                    for (String key : pageData.getKeys()) {
+                        if (!key.equalsIgnoreCase("type")) {
+                            try {
+                                RunicItem item = ItemLoader.loadItem(pageData.getSection(key), DupeManager.getNextItemId());
+                                if (item != null) {
+                                    contents[Integer.parseInt(key)] = item.generateItem();
+                                }
+                            } catch (Exception exception) {
+                                Bukkit.getLogger().log(Level.WARNING, "[RunicItems] ERROR loading item " + key + " for player bank " + uuid);
+                                exception.printStackTrace();
                             }
-                        } catch (Exception exception) {
-                            Bukkit.getLogger().log(Level.WARNING, "[RunicItems] ERROR loading item " + key + " for player bank " + uuid);
-                            exception.printStackTrace();
                         }
                     }
+                    bankInventories.put(i, contents);
                 }
-                bankInventories.put(i, contents);
             }
+        }
+        for (int i = 0; i <= maxPageIndex; i++) {
+            if (!bankInventories.containsKey(i)) bankInventories.put(i, new ItemStack[54]);
         }
     }
 

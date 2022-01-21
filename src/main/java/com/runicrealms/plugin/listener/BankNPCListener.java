@@ -33,10 +33,12 @@ public class BankNPCListener implements Listener {
                 player.sendMessage(ChatColor.RED + "The bank is already open!");
                 return;
             }
-            if (!RunicBank.getBankManager().getStorages().containsKey(player.getUniqueId())) {
-                DataUtil.createBankOrLoad(player.getUniqueId());
-            }
-            RunicBank.getBankManager().openBank(player.getUniqueId());
+            Bukkit.getScheduler().runTaskAsynchronously(RunicBank.getInstance(), () -> {
+                if (!RunicBank.getBankManager().getStorages().containsKey(player.getUniqueId())) {
+                    DataUtil.createBankOrLoad(player.getUniqueId());
+                }
+                Bukkit.getScheduler().runTask(RunicBank.getInstance(), () -> RunicBank.getBankManager().openBank(player.getUniqueId()));
+            });
         }
     }
 }

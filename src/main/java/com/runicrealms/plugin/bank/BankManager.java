@@ -7,11 +7,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class BankManager {
+public class BankManager implements Listener {
 
     private final ConcurrentHashMap<UUID, BankStorage> storages;
 

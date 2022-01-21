@@ -41,6 +41,7 @@ public final class RunicBank extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new BankClickListener(), this);
         getServer().getPluginManager().registerEvents(new BankNPCListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
+        getServer().getPluginManager().registerEvents(bankManager, this);
         getServer().getPluginManager().registerEvents(this, this);
 
         // initialize NPCs
