@@ -1,11 +1,10 @@
 package com.runicrealms.plugin.listener;
 
 import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.RunicCore;
 import com.runicrealms.plugin.bank.BankStorage;
-import com.runicrealms.plugin.player.cache.CacheManager;
 import com.runicrealms.runicitems.RunicItemsAPI;
 import com.runicrealms.runicitems.item.RunicItem;
+import com.runicrealms.runicitems.item.stats.RunicItemTag;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -47,7 +46,8 @@ public class BankClickListener implements Listener {
             // disabled interactions w/ blocked items
             if (e.getCurrentItem() != null && e.getCurrentItem().getType() != Material.AIR) {
                 RunicItem runicItem = RunicItemsAPI.getRunicItemFromItemStack(e.getCurrentItem());
-                if (runicItem != null && RunicItemsAPI.containsBlockedTag(runicItem)) {
+                if (runicItem != null &&
+                        (runicItem.getTags().contains(RunicItemTag.SOULBOUND) || runicItem.getTags().contains(RunicItemTag.QUEST_ITEM))) {
                     e.setCancelled(true);
                     player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
                     player.sendMessage(ChatColor.RED + "This item cannot be stored in the bank!");
