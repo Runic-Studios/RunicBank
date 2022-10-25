@@ -103,23 +103,22 @@ public class PlayerBankData implements SessionData {
         try {
             String parentKey = getJedisKey(uuid);
             for (int page = 0; page <= maxPageIndex; page++) {
-                if (jedis.exists(parentKey + ":" + page)) {
-                    for (int itemSlot = 0; itemSlot < 54; itemSlot++) {
-                        Map<String, String> itemDataMap = jedis.hgetAll(parentKey + ":bank:" + page + ":" + itemSlot); // get all item data for given slot
-                        if (itemDataMap == null) continue;
-                        ItemStack[] contents = new ItemStack[54];
-                        try {
-                            RunicItem item = ItemLoader.loadItem(itemDataMap, DupeManager.getNextItemId());
-                            if (item != null) {
-                                contents[itemSlot] = item.generateItem();
-                            }
-                        } catch (Exception exception) {
-                            Bukkit.getLogger().log(Level.WARNING, "[ERROR]: loading BANK item " + itemSlot + " for player bank " + uuid);
-                            exception.printStackTrace();
+                ItemStack[] contents = new ItemStack[54];
+                for (int itemSlot = 0; itemSlot < contents.length; itemSlot++) {
+                    if (!jedis.exists(parentKey + ":" + page + ":" + itemSlot)) continue;
+                    Map<String, String> itemDataMap = jedis.hgetAll(parentKey + ":" + page + ":" + itemSlot); // get all item data for given slot
+                    Bukkit.broadcastMessage("item found");
+                    try {
+                        RunicItem item = ItemLoader.loadItem(itemDataMap, DupeManager.getNextItemId());
+                        if (item != null) {
+                            contents[itemSlot] = item.generateItem();
                         }
-                        bankInventories.put(page, contents);
+                    } catch (Exception exception) {
+                        Bukkit.getLogger().log(Level.WARNING, "[ERROR]: loading BANK item " + itemSlot + " for player bank " + uuid);
+                        exception.printStackTrace();
                     }
                 }
+                bankInventories.put(page, contents);
             }
             for (int i = 0; i <= maxPageIndex; i++) {
                 if (!bankInventories.containsKey(i)) bankInventories.put(i, new ItemStack[54]);
