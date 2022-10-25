@@ -1,7 +1,7 @@
 package com.runicrealms.plugin.api;
 
 import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.bank.BankStorage;
+import com.runicrealms.plugin.model.PlayerBankData;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
@@ -15,11 +15,11 @@ public class RunicBankAPI {
      * @return true if bank is open
      */
     public static boolean isViewingBank(Player player) {
-        if (RunicBank.getBankManager().getStorages() == null) return false;
-        if (RunicBank.getBankManager().getStorages().get(player.getUniqueId()) == null) return false;
-        if (RunicBank.getBankManager().getStorages().get(player.getUniqueId()).getBankInv() == null) return false;
-        BankStorage bankStorage = RunicBank.getBankManager().getStorages().get(player.getUniqueId());
-        return bankStorage.isOpened();
+        if (RunicBank.getBankManager().getBankDataMap() == null) return false;
+        if (RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()) == null) return false;
+        if (RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()).getBankInv() == null) return false;
+        PlayerBankData playerBankData = RunicBank.getBankManager().loadPlayerBankData(player.getUniqueId());
+        return playerBankData.isOpened();
     }
 
     /**
@@ -29,10 +29,10 @@ public class RunicBankAPI {
      * @return true if bank is open
      */
     public static boolean isViewingBank(UUID uuid) {
-        if (RunicBank.getBankManager().getStorages() == null) return false;
-        if (RunicBank.getBankManager().getStorages().get(uuid) == null) return false;
-        if (RunicBank.getBankManager().getStorages().get(uuid).getBankInv() == null) return false;
-        BankStorage bankStorage = RunicBank.getBankManager().getStorages().get(uuid);
-        return bankStorage.isOpened();
+        if (RunicBank.getBankManager().getBankDataMap() == null) return false;
+        if (RunicBank.getBankManager().getBankDataMap().get(uuid) == null) return false;
+        if (RunicBank.getBankManager().getBankDataMap().get(uuid).getBankInv() == null) return false;
+        PlayerBankData playerBankData = RunicBank.getBankManager().loadPlayerBankData(uuid);
+        return playerBankData.isOpened();
     }
 }

@@ -1,18 +1,14 @@
 package com.runicrealms.plugin;
 
-import com.runicrealms.plugin.bank.BankManager;
 import com.runicrealms.plugin.listener.BankClickListener;
 import com.runicrealms.plugin.listener.BankNPCListener;
 import com.runicrealms.plugin.listener.PlayerJoinListener;
 import com.runicrealms.runicrestart.api.RunicRestartApi;
-import com.runicrealms.runicrestart.api.ServerShutdownEvent;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashSet;
 
-// todo: to optimize, don't save bank on-close every time. Enable a queue system like core
 public final class RunicBank extends JavaPlugin implements Listener {
 
     private static RunicBank plugin;
@@ -22,6 +18,7 @@ public final class RunicBank extends JavaPlugin implements Listener {
     public static RunicBank getInstance() {
         return plugin;
     }
+
     public static BankManager getBankManager() {
         return bankManager;
     }
@@ -75,19 +72,6 @@ public final class RunicBank extends JavaPlugin implements Listener {
 
     public static HashSet<Integer> getBankNPCs() {
         return bankNPCs;
-    }
-
-    @EventHandler
-    public void onRunicShutdown(ServerShutdownEvent e) {
-        /*
-        Save current state of player data
-         */
-        getLogger().info(" §cRunicBank has been disabled.");
-        // Used to be bank saving here, now handled by cache save event.
-        /*
-        Notify RunicRestart
-         */
-        RunicRestartApi.markPluginSaved("bank");
     }
 
     @Override
