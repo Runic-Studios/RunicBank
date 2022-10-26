@@ -6,7 +6,6 @@ import com.runicrealms.plugin.database.PlayerMongoData;
 import com.runicrealms.plugin.database.event.MongoSaveEvent;
 import com.runicrealms.plugin.model.PlayerBankData;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -106,10 +105,10 @@ public class BankManager implements Listener {
      */
     public PlayerBankData checkRedisForBankData(UUID uuid, Jedis jedis) {
         if (jedis.exists(PlayerBankData.getJedisKey(uuid) + ":" + PlayerBankData.MAX_PAGE_INDEX_STRING)) {
-            Bukkit.broadcastMessage(ChatColor.GREEN + "redis bank data found, building data from redis");
+            // Bukkit.broadcastMessage(ChatColor.GREEN + "redis bank data found, building data from redis");
             return new PlayerBankData(uuid, jedis);
         }
-        Bukkit.broadcastMessage(ChatColor.RED + "redis bank data not found");
+        // Bukkit.broadcastMessage(ChatColor.RED + "redis bank data not found");
         return null;
     }
 

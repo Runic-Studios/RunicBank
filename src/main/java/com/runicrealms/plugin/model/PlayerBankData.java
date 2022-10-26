@@ -107,7 +107,7 @@ public class PlayerBankData implements SessionData {
                 for (int itemSlot = 0; itemSlot < contents.length; itemSlot++) {
                     if (!jedis.exists(parentKey + ":" + page + ":" + itemSlot)) continue;
                     Map<String, String> itemDataMap = jedis.hgetAll(parentKey + ":" + page + ":" + itemSlot); // get all item data for given slot
-                    Bukkit.broadcastMessage("item found");
+                    // Bukkit.broadcastMessage("item found");
                     try {
                         RunicItem item = ItemLoader.loadItem(itemDataMap, DupeManager.getNextItemId());
                         if (item != null) {
@@ -295,7 +295,7 @@ public class PlayerBankData implements SessionData {
     }
 
     public void writeToJedis(Jedis jedis) {
-        Bukkit.broadcastMessage("writing bank data to jedis");
+        // Bukkit.broadcastMessage("writing bank data to jedis");
         String key = getJedisKey(this.uuid);
         RedisUtil.removeAllFromRedis(jedis, key); // removes all sub-keys
         jedis.set(key + ":" + MAX_PAGE_INDEX_STRING, String.valueOf(this.maxPageIndex));
