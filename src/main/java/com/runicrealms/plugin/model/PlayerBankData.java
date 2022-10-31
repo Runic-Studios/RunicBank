@@ -340,28 +340,26 @@ public class PlayerBankData implements SessionDataNested {
     }
 
     @Override
-    public void writeToMongo(PlayerMongoData playerMongoData, int... ints) {
+    public PlayerMongoData writeToMongo(PlayerMongoData playerMongoData, int... ints) {
         try {
-            PlayerMongoData mongoData = new PlayerMongoData(uuid.toString());
-            mongoData.set("bank.max_page_index", maxPageIndex);
-            if (mongoData.has("bank.pages")) mongoData.remove("bank.pages");
-            mongoData.set("bank.type", "runicitems");
-            mongoData.save();
+            if (playerMongoData.has("bank.pages"))
+                playerMongoData.remove("bank.pages");
+            playerMongoData.set("bank.max_page_index", maxPageIndex);
             for (Map.Entry<Integer, ItemStack[]> page : bankInventories.entrySet()) {
                 ItemStack[] contents = page.getValue();
                 for (int i = 0; i < contents.length; i++) {
                     if (contents[i] != null) {
                         RunicItem runicItem = ItemManager.getRunicItemFromItemStack(contents[i]);
                         if (runicItem != null) {
-                            runicItem.addToDataSection(mongoData, "bank.pages." + page.getKey() + "." + i);
+                            runicItem.addToDataSection(playerMongoData, "bank.pages." + page.getKey() + "." + i);
                         }
                     }
                 }
             }
-            mongoData.save();
         } catch (Exception e) {
             RunicBank.getInstance().getLogger().warning("[ERROR]: There was a problem saving bank data to mongo!");
             e.printStackTrace();
         }
+        return playerMongoData;
     }
 }

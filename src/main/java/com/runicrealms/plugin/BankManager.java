@@ -57,7 +57,7 @@ public class BankManager implements Listener {
     @EventHandler
     public void onMongoSave(MongoSaveEvent event) {
         for (UUID uuid : event.getPlayersToSave().keySet()) {
-            PlayerMongoData playerMongoData = new PlayerMongoData(uuid.toString());
+            PlayerMongoData playerMongoData = event.getPlayersToSave().get(uuid).getPlayerMongoData();
             PlayerBankData playerBankData = loadPlayerBankData(uuid);
             playerBankData.writeToMongo(playerMongoData);
         }
