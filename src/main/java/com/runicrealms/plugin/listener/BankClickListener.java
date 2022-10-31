@@ -82,13 +82,13 @@ public class BankClickListener implements Listener {
      * Write bank info to file.
      */
     @EventHandler
-    public void onBankClose(InventoryCloseEvent e) {
-        Player player = (Player) e.getPlayer();
+    public void onBankClose(InventoryCloseEvent event) {
+        Player player = (Player) event.getPlayer();
         if (RunicBank.getBankManager().getBankDataMap() == null) return;
         if (RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()) == null) return;
         if (RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()).getBankInv() == null) return;
         String bankTitle = RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()).getBankTitle();
-        if (e.getView().getTitle().equals(bankTitle)) {
+        if (event.getView().getTitle().equals(bankTitle)) {
             PlayerBankData playerBankData = RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId());
             playerBankData.savePage(); // to array
             playerBankData.setOpened(false);

@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class PlayerBankData implements SessionData {
+public class PlayerBankData implements SessionDataNested {
 
     public static final String MAX_PAGE_INDEX_STRING = "maxPageIndex";
 
@@ -294,22 +294,6 @@ public class PlayerBankData implements SessionData {
         this.maxPageIndex = maxPageIndex;
     }
 
-    public void writeToJedis(Jedis jedis) {
-        // Bukkit.broadcastMessage("writing bank data to jedis");
-        String key = getJedisKey(this.uuid);
-        RedisUtil.removeAllFromRedis(jedis, key); // removes all sub-keys
-        jedis.set(key + ":" + MAX_PAGE_INDEX_STRING, String.valueOf(this.maxPageIndex));
-        jedis.expire(key + ":" + MAX_PAGE_INDEX_STRING, RedisUtil.EXPIRE_TIME);
-        Map<String, Map<String, String>> itemDataMap = this.toItemMap(); // from all bank pages
-        if (!itemDataMap.isEmpty()) {
-            for (String pageAndItem : itemDataMap.keySet()) {
-                if (itemDataMap.get(pageAndItem) == null) continue;
-                jedis.hmset(key + ":" + pageAndItem, itemDataMap.get(pageAndItem));
-                jedis.expire(key + ":" + pageAndItem, RedisUtil.EXPIRE_TIME);
-            }
-        }
-    }
-
     /**
      * Bank data is nested in redis (acc-wide), so here's a handy method to get the key
      *
@@ -321,23 +305,38 @@ public class PlayerBankData implements SessionData {
     }
 
     @Override
-    public Map<String, String> toMap() {
-        return null;
+    public Map<String, String> toMap(Object nestedObject) {
+        RunicItem runicItem = (RunicItem) nestedObject;
+        return runicItem.addToJedis();
     }
 
-    public Map<String, Map<String, String>> toItemMap() {
-        Map<String, Map<String, String>> itemDataMap = new HashMap<>();
+    @Override
+    public void writeToJedis(Jedis jedis, int... characterSlot) { // don't need 2nd param, bank is acc-wide
+        // Bukkit.broadcastMessage("writing bank data to jedis");
+        String key = getJedisKey(this.uuid);
+        RedisUtil.removeAllFromRedis(jedis, key); // removes all sub-keys
+        jedis.set(key + ":" + MAX_PAGE_INDEX_STRING, String.valueOf(this.maxPageIndex));
+        jedis.expire(key + ":" + MAX_PAGE_INDEX_STRING, RedisUtil.EXPIRE_TIME);
+        Map<String, Map<String, String>> itemDataMap = new HashMap<>(); // from all bank pages
+
         for (Map.Entry<Integer, ItemStack[]> page : bankInventories.entrySet()) {
             ItemStack[] contents = page.getValue();
             for (int i = 0; i < contents.length; i++) {
                 if (contents[i] != null) {
                     RunicItem runicItem = ItemManager.getRunicItemFromItemStack(contents[i]);
                     if (runicItem != null)
-                        itemDataMap.put(page.getKey() + ":" + i, runicItem.addToJedis());
+                        itemDataMap.put(page.getKey() + ":" + i, this.toMap(runicItem));
                 }
             }
         }
-        return itemDataMap;
+
+        if (!itemDataMap.isEmpty()) {
+            for (String pageAndItem : itemDataMap.keySet()) {
+                if (itemDataMap.get(pageAndItem) == null) continue;
+                jedis.hmset(key + ":" + pageAndItem, itemDataMap.get(pageAndItem));
+                jedis.expire(key + ":" + pageAndItem, RedisUtil.EXPIRE_TIME);
+            }
+        }
     }
 
     @Override
