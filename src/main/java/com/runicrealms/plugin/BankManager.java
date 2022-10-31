@@ -32,15 +32,6 @@ public class BankManager implements Listener {
         Player player = Bukkit.getPlayer(uuid);
         if (player == null) return;
         PlayerBankData playerBankData = RunicBank.getBankManager().loadPlayerBankData(uuid);
-//        BankStorage storage;
-//        if (!bankDataMap.containsKey(uuid)) {
-//            try (Jedis jedis = RunicCoreAPI.getNewJedisResource()) {
-//                storage = new BankStorage(0, uuid, jedis);
-//                bankDataMap.put(uuid, storage);
-//            }
-//        } else {
-//            storage = bankDataMap.get(uuid);
-//        }
         playerBankData.displayPage(0);
         playerBankData.setCurrentPage(0);
         playerBankData.setOpened(true);
@@ -52,6 +43,7 @@ public class BankManager implements Listener {
         UUID uuid = event.getPlayer().getUniqueId();
         PlayerBankData playerBankData = RunicBank.getBankManager().loadPlayerBankData(uuid);
         playerBankData.writeToJedis(event.getJedis());
+        bankDataMap.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
