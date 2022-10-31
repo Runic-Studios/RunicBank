@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-public interface RunicBankAPI {
+public class RunicBankAPI {
 
     /**
      * A check to determine whether a player currently has their bank open
