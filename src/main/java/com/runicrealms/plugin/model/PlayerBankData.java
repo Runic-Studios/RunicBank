@@ -22,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -305,14 +306,23 @@ public class PlayerBankData implements SessionDataNested {
     }
 
     @Override
+    public List<String> getFields() {
+        return null;
+    }
+
+    @Override
     public Map<String, String> toMap(Object nestedObject) {
         RunicItem runicItem = (RunicItem) nestedObject;
         return runicItem.addToJedis();
     }
 
     @Override
+    public Map<String, String> getDataMapFromJedis(Jedis jedis, Object o, int... ints) {
+        return null;
+    }
+
+    @Override
     public void writeToJedis(Jedis jedis, int... characterSlot) { // don't need 2nd param, bank is acc-wide
-        // Bukkit.broadcastMessage("writing bank data to jedis");
         String key = getJedisKey(this.uuid);
         RedisUtil.removeAllFromRedis(jedis, key); // removes all sub-keys
         jedis.set(key + ":" + MAX_PAGE_INDEX_STRING, String.valueOf(this.maxPageIndex));
