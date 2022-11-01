@@ -14,7 +14,7 @@ public class RunicBankAPI {
      * @param player to check
      * @return true if bank is open
      */
-    static boolean isViewingBank(Player player) {
+    public static boolean isViewingBank(Player player) {
         if (RunicBank.getBankManager().getBankDataMap() == null) return false;
         if (RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()) == null) return false;
         if (RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()).getBankInv() == null) return false;
@@ -28,7 +28,7 @@ public class RunicBankAPI {
      * @param uuid of player to check
      * @return true if bank is open
      */
-    static boolean isViewingBank(UUID uuid) {
+    public static boolean isViewingBank(UUID uuid) {
         if (RunicBank.getBankManager().getBankDataMap() == null) return false;
         if (RunicBank.getBankManager().getBankDataMap().get(uuid) == null) return false;
         if (RunicBank.getBankManager().getBankDataMap().get(uuid).getBankInv() == null) return false;
