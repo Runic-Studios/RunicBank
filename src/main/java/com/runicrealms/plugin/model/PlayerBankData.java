@@ -3,6 +3,7 @@ package com.runicrealms.plugin.model;
 import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.api.RunicCoreAPI;
 import com.runicrealms.plugin.database.Data;
+import com.runicrealms.plugin.database.MongoData;
 import com.runicrealms.plugin.database.PlayerMongoData;
 import com.runicrealms.plugin.item.util.ItemRemover;
 import com.runicrealms.plugin.redis.RedisUtil;
@@ -350,7 +351,8 @@ public class PlayerBankData implements SessionDataNested {
     }
 
     @Override
-    public PlayerMongoData writeToMongo(PlayerMongoData playerMongoData, int... ints) {
+    public PlayerMongoData writeToMongo(MongoData mongoData, int... ints) {
+        PlayerMongoData playerMongoData = (PlayerMongoData) mongoData;
         try {
             if (playerMongoData.has("bank.pages"))
                 playerMongoData.remove("bank.pages");
