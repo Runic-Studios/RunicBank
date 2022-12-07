@@ -3,7 +3,7 @@ package com.runicrealms.plugin;
 import com.runicrealms.plugin.listener.BankClickListener;
 import com.runicrealms.plugin.listener.BankNPCListener;
 import com.runicrealms.plugin.listener.PlayerJoinListener;
-import com.runicrealms.runicrestart.api.RunicRestartApi;
+import com.runicrealms.runicrestart.RunicRestart;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -44,7 +44,7 @@ public final class RunicBank extends JavaPlugin implements Listener {
         // initialize NPCs
         initializeBankNPCs();
 
-        RunicRestartApi.markPluginLoaded("bank");
+        RunicRestart.getAPI().markPluginLoaded("bank");
     }
 
     // todo: move to config
