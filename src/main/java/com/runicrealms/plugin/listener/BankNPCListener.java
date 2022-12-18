@@ -1,8 +1,7 @@
 package com.runicrealms.plugin.listener;
 
 import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.model.PlayerBankData;
-import com.runicrealms.runicnpcs.api.NpcClickEvent;
+import com.runicrealms.plugin.api.NpcClickEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -45,7 +44,7 @@ public class BankNPCListener implements Listener {
         /*
         Create bank in mongo
          */
-        PlayerBankData playerBankData = RunicBank.getBankManager().loadPlayerBankData(uuid);
+        RunicBank.getBankManager().loadPlayerBankData(uuid);
         RunicBank.getBankManager().openBank(uuid);
 
 //        try (Jedis jedis = RunicCoreAPI.getNewJedisResource()) {

@@ -1,6 +1,5 @@
 package com.runicrealms.plugin;
 
-import com.runicrealms.plugin.api.RunicCoreAPI;
 import com.runicrealms.plugin.character.api.CharacterQuitEvent;
 import com.runicrealms.plugin.database.PlayerMongoData;
 import com.runicrealms.plugin.database.event.MongoSaveEvent;
@@ -67,7 +66,7 @@ public class BankManager implements Listener {
         PlayerBankData playerBankData = bankDataMap.get(uuid);
         if (playerBankData != null) return playerBankData;
         // Step 2: check if hunter data is cached in redis
-        try (Jedis jedis = RunicCoreAPI.getNewJedisResource()) {
+        try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
             return loadPlayerBankData(uuid, jedis);
         }
     }

@@ -1,12 +1,11 @@
 package com.runicrealms.plugin.model;
 
 import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.api.RunicCoreAPI;
+import com.runicrealms.plugin.RunicCore;
 import com.runicrealms.plugin.database.Data;
 import com.runicrealms.plugin.database.MongoData;
 import com.runicrealms.plugin.database.PlayerMongoData;
 import com.runicrealms.plugin.item.util.ItemRemover;
-import com.runicrealms.plugin.redis.RedisUtil;
 import com.runicrealms.plugin.util.Util;
 import com.runicrealms.plugin.utilities.CurrencyUtil;
 import com.runicrealms.runicitems.DupeManager;
@@ -193,7 +192,7 @@ public class PlayerBankData implements SessionDataNested {
             this.getBankInventories().put(maxIndex + 1, new ItemStack[54]);
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
             player.sendMessage(ChatColor.GREEN + "You purchased a new bank page!");
-            try (Jedis jedis = RunicCoreAPI.getNewJedisResource()) {
+            try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
                 writeToJedis(jedis);
             }
             player.closeInventory();
@@ -325,9 +324,9 @@ public class PlayerBankData implements SessionDataNested {
     @Override
     public void writeToJedis(Jedis jedis, int... characterSlot) { // don't need 2nd param, bank is acc-wide
         String key = getJedisKey(this.uuid);
-        RedisUtil.removeAllFromRedis(jedis, key); // removes all sub-keys
+        RunicCore.getRedisAPI().removeAllFromRedis(jedis, key); // removes all sub-keys
         jedis.set(key + ":" + MAX_PAGE_INDEX_STRING, String.valueOf(this.maxPageIndex));
-        jedis.expire(key + ":" + MAX_PAGE_INDEX_STRING, RedisUtil.EXPIRE_TIME);
+        jedis.expire(key + ":" + MAX_PAGE_INDEX_STRING, RunicCore.getRedisAPI().getExpireTime());
         Map<String, Map<String, String>> itemDataMap = new HashMap<>(); // from all bank pages
 
         for (Map.Entry<Integer, ItemStack[]> page : bankInventories.entrySet()) {
@@ -345,7 +344,7 @@ public class PlayerBankData implements SessionDataNested {
             for (String pageAndItem : itemDataMap.keySet()) {
                 if (itemDataMap.get(pageAndItem) == null) continue;
                 jedis.hmset(key + ":" + pageAndItem, itemDataMap.get(pageAndItem));
-                jedis.expire(key + ":" + pageAndItem, RedisUtil.EXPIRE_TIME);
+                jedis.expire(key + ":" + pageAndItem, RunicCore.getRedisAPI().getExpireTime());
             }
         }
     }
