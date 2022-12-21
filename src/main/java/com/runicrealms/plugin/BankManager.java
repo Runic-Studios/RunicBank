@@ -41,7 +41,9 @@ public class BankManager implements Listener {
     public void onLoadedQuit(CharacterQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         PlayerBankData playerBankData = RunicBank.getBankManager().loadPlayerBankData(uuid);
-        playerBankData.writeToJedis(event.getJedis());
+        try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
+            playerBankData.writeToJedis(jedis);
+        }
         bankDataMap.remove(event.getPlayer().getUniqueId());
     }
 
