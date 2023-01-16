@@ -57,12 +57,7 @@ public class PlayerBankData implements SessionDataNested {
         this.bankTitle = ChatColor.translateAlternateColorCodes
                 ('&', "&f&l" + player.getName() + "&6&l's Bank");
         this.maxPageIndex = playerMongoData.get("bank.max_page_index", Integer.class);
-        if (((!playerMongoData.has("bank.type")) // remove old-style bank saving data
-                || (!playerMongoData.get("bank.type", String.class).equalsIgnoreCase("runicitems")))
-                && playerMongoData.has("bank.pages")) {
-            playerMongoData.remove("bank.pages");
-            Bukkit.getScheduler().runTaskAsynchronously(RunicBank.getInstance(), () -> writeToMongo(playerMongoData));
-        } else if (playerMongoData.has("bank.pages")) {
+        if (playerMongoData.has("bank.pages")) {
             for (int i = 0; i <= maxPageIndex; i++) {
                 if (playerMongoData.has("bank.pages." + i)) {
                     Data pageData = playerMongoData.getSection("bank.pages." + i);
