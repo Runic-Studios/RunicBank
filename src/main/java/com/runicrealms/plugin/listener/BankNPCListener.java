@@ -10,50 +10,37 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.metadata.FixedMetadataValue;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class BankNPCListener implements Listener {
-
-    private static final int NPC_CLICK_DELAY = 20;
+    public static final Set<UUID> databaseRequesters = new HashSet<>(); // Players making requests to Redis/Mongo
+    private static final int NPC_CLICK_DELAY = 1; // seconds
 
     @EventHandler
     public void onRightClick(NpcClickEvent event) {
-
+        if (databaseRequesters.contains(event.getPlayer().getUniqueId())) return;
         // Prevent players from spamming NPCs
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
         if (player.hasMetadata("INVENTORY_META")) return;
         player.setMetadata("INVENTORY_META", new FixedMetadataValue(RunicBank.getInstance(), null));
 
-        // After 20 ticks (1s), remove the metadata key
+        // After 3s, remove the metadata key
         Bukkit.getScheduler().runTaskLaterAsynchronously(RunicBank.getInstance(),
-                () -> player.removeMetadata("INVENTORY_META", RunicBank.getInstance()), NPC_CLICK_DELAY);
+                () -> player.removeMetadata("INVENTORY_META", RunicBank.getInstance()), NPC_CLICK_DELAY * 20L);
 
         // Ensure bank npc
         if (!RunicBank.getBankNPCs().contains(event.getNpc().getId())) return;
 
-        // Fix for players trying to spoof whether bank inv is open
-        if (RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()) != null
-                && RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()).isOpened()) {
+        // Fix for players trying to spoof whether bank inventory is open
+        if (RunicBank.getAPI().isViewingBank(player.getUniqueId())) {
             player.playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.5f, 1.0f);
             player.sendMessage(ChatColor.RED + "The bank is already open!");
             return;
         }
 
-        // todo: split here into mongo and jedis
-        /*
-        Create bank in mongo
-         */
-        RunicBank.getBankManager().loadPlayerBankData(uuid);
-        RunicBank.getBankManager().openBank(uuid);
-
-//        try (Jedis jedis = RunicCoreAPI.getNewJedisResource()) {
-//            Bukkit.getScheduler().runTaskAsynchronously(RunicBank.getInstance(), () -> {
-//                if (!RunicBank.getBankManager().getStorages().containsKey(player.getUniqueId())) {
-//                    DataUtil.createBankOrLoad(player.getUniqueId(), jedis);
-//                }
-//                Bukkit.getScheduler().runTask(RunicBank.getInstance(), () -> RunicBank.getBankManager().openBank(player.getUniqueId()));
-//            });
-//        }
+        RunicBank.getAPI().openBank(uuid);
     }
 }
