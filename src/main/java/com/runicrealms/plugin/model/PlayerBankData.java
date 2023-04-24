@@ -1,24 +1,16 @@
 package com.runicrealms.plugin.model;
 
-import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.RunicCore;
-import com.runicrealms.plugin.database.Data;
-import com.runicrealms.plugin.database.MongoData;
-import com.runicrealms.plugin.database.PlayerMongoData;
-import com.runicrealms.plugin.item.util.ItemRemover;
-import com.runicrealms.plugin.util.Util;
-import com.runicrealms.plugin.utilities.CurrencyUtil;
 import com.runicrealms.runicitems.DupeManager;
-import com.runicrealms.runicitems.ItemManager;
 import com.runicrealms.runicitems.config.ItemLoader;
 import com.runicrealms.runicitems.item.RunicItem;
-import net.md_5.bungee.api.ChatColor;
+import org.bson.types.ObjectId;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
@@ -27,267 +19,84 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class PlayerBankData implements SessionDataNested {
-
+/**
+ * Represents a player's bank data. Banks are account-wide!
+ * This object is not cached in the server's memory (see BankHolder.java)
+ * This is more like a Data Transfer Object to handle messages between server, redis, and mongo
+ *
+ * @author Skyfallin
+ */
+@Document(collection = "bank")
+public class PlayerBankData implements SessionDataMongo, SessionDataNested {
     public static final String MAX_PAGE_INDEX_STRING = "maxPageIndex";
-
-    private boolean isOpen; // for hacked clients
-    private int currentPage;
+    @Id
+    private ObjectId id;
+    @Field("playerUuid")
+    private UUID uuid;
+    @Transient
+    private BankHolder bankHolder;
     private int maxPageIndex;
-    private String bankTitle = "";
-    private Inventory bankInv;
-    private final UUID uuid;
-    private final HashMap<Integer, ItemStack[]> bankInventories;
+    private HashMap<Integer, RunicItem[]> pagesMap = new HashMap<>(); // Keyed by page number
 
-    /**
-     * Builds the player's bank data wrapper from mongo, then writes to jedis and in-game memory for faster lookup
-     *
-     * @param uuid            of the player
-     * @param playerMongoData of the player (usually from an event)
-     * @param jedis           the jedis resource
-     */
-    public PlayerBankData(UUID uuid, PlayerMongoData playerMongoData, Jedis jedis, int currentPage) {
-        this.isOpen = false;
-        this.currentPage = currentPage;
-        this.bankInv = getNewStorageInventory();
-        this.uuid = uuid;
-        bankInventories = new HashMap<>();
-        Player player = Bukkit.getPlayer(uuid);
-        if (player == null) return;
-        this.bankTitle = ChatColor.translateAlternateColorCodes
-                ('&', "&f&l" + player.getName() + "&6&l's Bank");
-        this.maxPageIndex = playerMongoData.get("bank.max_page_index", Integer.class);
-        if (playerMongoData.has("bank.pages")) {
-            for (int i = 0; i <= maxPageIndex; i++) {
-                if (playerMongoData.has("bank.pages." + i)) {
-                    Data pageData = playerMongoData.getSection("bank.pages." + i);
-                    ItemStack[] contents = new ItemStack[54];
-                    for (String key : pageData.getKeys()) {
-                        if (!key.equalsIgnoreCase("type")) {
-                            try {
-                                RunicItem item = ItemLoader.loadItem(pageData.getSection(key), DupeManager.getNextItemId());
-                                if (item != null) {
-                                    contents[Integer.parseInt(key)] = item.generateItem();
-                                }
-                            } catch (Exception exception) {
-                                Bukkit.getLogger().log(Level.WARNING, "[RunicItems] ERROR loading item " + key + " for player bank " + uuid);
-                                exception.printStackTrace();
-                            }
-                        }
-                    }
-                    bankInventories.put(i, contents);
-                }
-            }
-        }
-        for (int i = 0; i <= maxPageIndex; i++) {
-            if (!bankInventories.containsKey(i)) bankInventories.put(i, new ItemStack[54]);
-        }
-        writeToJedis(jedis);
-        RunicBank.getBankManager().getBankDataMap().put(uuid, this); // add to in-game memory
+    @SuppressWarnings("unused")
+    public PlayerBankData() {
+        // Default constructor for Spring
     }
 
     /**
-     * Builds the player's bank data from jedis, then adds to in-game memory
+     * Constructor used for new players
+     */
+    public PlayerBankData(
+            ObjectId id,
+            UUID uuid,
+            int maxPageIndex,
+            HashMap<Integer, RunicItem[]> pagesMap) {
+        this.id = id;
+        this.uuid = uuid;
+        this.maxPageIndex = maxPageIndex;
+        this.pagesMap = pagesMap;
+        this.bankHolder = new BankHolder(uuid, maxPageIndex, pagesMap); // Create in-memory object
+    }
+
+    /**
+     * Constructor that builds the player's bank data from jedis, then adds to in-game memory
      *
      * @param uuid  of the player
      * @param jedis the jedis resource
      */
     public PlayerBankData(UUID uuid, Jedis jedis) {
+        String database = RunicCore.getDataAPI().getMongoDatabase().getName();
+        String parentKey = database + ":" + getJedisKey(uuid);
         this.uuid = uuid;
-        this.maxPageIndex = Integer.parseInt(jedis.get(getJedisKey(uuid) + ":maxPageIndex"));
-        bankInventories = new HashMap<>();
+        this.maxPageIndex = Integer.parseInt(jedis.get(parentKey + ":maxPageIndex"));
+        pagesMap = new HashMap<>();
         try {
-            String parentKey = getJedisKey(uuid);
             for (int page = 0; page <= maxPageIndex; page++) {
-                ItemStack[] contents = new ItemStack[54];
+                RunicItem[] contents = new RunicItem[54];
                 for (int itemSlot = 0; itemSlot < contents.length; itemSlot++) {
                     if (!jedis.exists(parentKey + ":" + page + ":" + itemSlot)) continue;
-                    Map<String, String> itemDataMap = jedis.hgetAll(parentKey + ":" + page + ":" + itemSlot); // get all item data for given slot
-                    // Bukkit.broadcastMessage("item found");
+                    // Get all item data for given slot
+                    Map<String, String> itemDataMap = jedis.hgetAll(parentKey + ":" + page + ":" + itemSlot);
                     try {
                         RunicItem item = ItemLoader.loadItem(itemDataMap, DupeManager.getNextItemId());
                         if (item != null) {
-                            contents[itemSlot] = item.generateItem();
+                            contents[itemSlot] = item;
                         }
                     } catch (Exception exception) {
-                        Bukkit.getLogger().log(Level.WARNING, "[ERROR]: loading BANK item " + itemSlot + " for player bank " + uuid);
+                        Bukkit.getLogger().log(Level.SEVERE, "Loading RunicBank item " + itemSlot + " for player bank " + uuid);
                         exception.printStackTrace();
                     }
                 }
-                bankInventories.put(page, contents);
+                pagesMap.put(page, contents);
             }
             for (int i = 0; i <= maxPageIndex; i++) {
-                if (!bankInventories.containsKey(i)) bankInventories.put(i, new ItemStack[54]);
+                if (!pagesMap.containsKey(i)) pagesMap.put(i, new RunicItem[54]);
             }
-            RunicBank.getBankManager().getBankDataMap().put(uuid, this); // add to in-game memory
+            this.bankHolder = new BankHolder(uuid, maxPageIndex, pagesMap); // Create in-memory object
         } catch (Exception e) {
-            Bukkit.getLogger().warning("[ERROR]: There was a problem loading bank data from redis!");
+            Bukkit.getLogger().log(Level.SEVERE, "There was a problem loading bank data from redis!");
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Display specified page from virtual memory.
-     */
-    public void displayPage(int page) {
-        Player player = Bukkit.getPlayer(this.uuid);
-        if (player == null) return;
-        this.bankInv = getNewStorageInventory();
-        // fill top row with black panes
-        for (int i = 0; i < 4; i++) {
-            this.bankInv.setItem(i, Util.menuItem(Material.BLACK_STAINED_GLASS_PANE, "&r", ""));
-        }
-        this.bankInv.setItem(5, Util.menuItem(Material.BLACK_STAINED_GLASS_PANE, "&r", ""));
-        // menu buttons
-        this.bankInv.setItem(4, Util.menuItem(Material.YELLOW_STAINED_GLASS_PANE, "&6&lBank of Alterra", "&7Welcome to your bank\n&aPage: &f" + (page + 1)));
-        this.bankInv.setItem(6, Util.menuItem(Material.CYAN_STAINED_GLASS_PANE, "&a&lAdd Page &f&l[&a&l" + (this.getMaxPageIndex() + 1) + "&f&l/5]", "&7Purchase a new bank page"));
-        this.bankInv.setItem(7, Util.menuItem(Material.GREEN_STAINED_GLASS_PANE, "&f&lPrevious Page", "&7Display the previous page in your bank"));
-        this.bankInv.setItem(8, Util.menuItem(Material.RED_STAINED_GLASS_PANE, "&f&lNext Page", "&7Display the next page in your bank"));
-        // load page from virtual memory
-        ItemStack[] pageContents = this.getInventory(page);
-        for (int i = 9; i < 54; i++) {
-            if (pageContents[i] != null) {
-                ItemStack item = pageContents[i];
-                this.bankInv.setItem(i, item);
-            }
-        }
-        player.openInventory(this.bankInv);
-    }
-
-    /**
-     * Logic to add a bank page for player
-     *
-     * @param uuid     of the player
-     * @param material of the 'add' icon used to determine confirmation and/or max pages reached
-     */
-    public void addPage(UUID uuid, Material material) {
-
-        Player player = Bukkit.getPlayer(uuid);
-        if (player == null) return;
-        int maxIndex = this.getMaxPageIndex();
-        int price = (int) Math.pow(2, maxIndex + 6);
-
-        if (material != Material.SLIME_BALL) {
-            if ((maxIndex + 1) >= Util.getMaxPages()) {
-                player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
-                player.sendMessage(ChatColor.RED + "You already have the maximum number of pages!");
-                return;
-            }
-            // ask for confirmation
-            this.getBankInv().setItem(6, Util.menuItem(Material.SLIME_BALL, "&a&lConfirm Purchase", "&7Purchase a new page for: &6&l" + price + "G"));
-        } else {
-
-            if (!player.getInventory().contains(Material.GOLD_NUGGET, price)) {
-                player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
-                player.sendMessage(ChatColor.RED + "You don't have enough gold!");
-                return;
-            }
-            ItemRemover.takeItem(player, CurrencyUtil.goldCoin(), price);
-            this.setMaxPageIndex(maxIndex + 1);
-            this.getBankInventories().put(maxIndex + 1, new ItemStack[54]);
-            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
-            player.sendMessage(ChatColor.GREEN + "You purchased a new bank page!");
-            try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
-                writeToJedis(jedis);
-            }
-            player.closeInventory();
-        }
-    }
-
-    /**
-     * View the previous page of the player's bank
-     */
-    public void prevPage(UUID uuid) {
-        Player player = Bukkit.getPlayer(uuid);
-        if (player == null) return;
-        if (currentPage <= 0) return;
-        // update the virtual memory page
-        savePage();
-        this.setCurrentPage(this.getCurrentPage() - 1);
-        this.displayPage(currentPage);
-    }
-
-    /**
-     * View the next page of the player's bank
-     */
-    public void nextPage(UUID uuid) {
-        Player player = Bukkit.getPlayer(uuid);
-        if (player == null) return;
-        int currentMax = this.getMaxPageIndex();
-        if (currentPage >= currentMax) return;
-        // update the virtual memory page
-        savePage();
-        this.setCurrentPage(this.getCurrentPage() + 1);
-        this.displayPage(currentPage);
-    }
-
-    /**
-     * Updates the current bank inventory in virtual memory
-     */
-    public void savePage() {
-        // clear the current memory page
-        ItemStack[] currentInv = this.getInventory(currentPage);
-        for (int i = 0; i < 54; i++) {
-            currentInv[i] = bankInv.getItem(i);
-        }
-    }
-
-    /**
-     * Builds an empty bank inventory
-     */
-    private Inventory getNewStorageInventory() {
-        try {
-            Player player = Bukkit.getPlayer(this.getUuid());
-            if (player == null) return null;
-            String name = bankTitle;
-            return Bukkit.createInventory(player, 54, name);
-        } catch (NullPointerException e) {
-            return null;
-        }
-    }
-
-    public boolean isOpened() {
-        return isOpen;
-    }
-
-    private int getCurrentPage() {
-        return currentPage;
-    }
-
-    public void setCurrentPage(int currentPage) {
-        this.currentPage = currentPage;
-    }
-
-    public Inventory getBankInv() {
-        return bankInv;
-    }
-
-    public String getBankTitle() {
-        return bankTitle;
-    }
-
-    public void setOpened(boolean isOpen) {
-        this.isOpen = isOpen;
-    }
-
-    public int getMaxPageIndex() {
-        return maxPageIndex;
-    }
-
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    public HashMap<Integer, ItemStack[]> getBankInventories() {
-        return bankInventories;
-    }
-
-    public ItemStack[] getInventory(int index) {
-        return bankInventories.get(index);
-    }
-
-    public void setMaxPageIndex(int maxPageIndex) {
-        this.maxPageIndex = maxPageIndex;
     }
 
     /**
@@ -300,9 +109,33 @@ public class PlayerBankData implements SessionDataNested {
         return uuid + ":bank";
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public PlayerBankData addDocumentToMongo() {
+        MongoTemplate mongoTemplate = RunicCore.getDataAPI().getMongoTemplate();
+        return mongoTemplate.save(this);
+    }
+
+    public BankHolder getBankHolder() {
+        return bankHolder;
+    }
+
+    public void setBankHolder(BankHolder bankHolder) {
+        this.bankHolder = bankHolder;
+    }
+
+    @Override
+    public Map<String, String> getDataMapFromJedis(Jedis jedis, Object o, int... ints) {
+        return null;
+    }
+
     @Override
     public List<String> getFields() {
         return null;
+    }
+
+    public UUID getUuid() {
+        return uuid;
     }
 
     @Override
@@ -312,25 +145,22 @@ public class PlayerBankData implements SessionDataNested {
     }
 
     @Override
-    public Map<String, String> getDataMapFromJedis(Jedis jedis, Object o, int... ints) {
-        return null;
-    }
-
-    @Override
-    public void writeToJedis(Jedis jedis, int... characterSlot) { // don't need 2nd param, bank is acc-wide
+    public void writeToJedis(Jedis jedis, int... ignored) {
+        String database = RunicCore.getDataAPI().getMongoDatabase().getName();
+        // Inform the server that this player should be saved to mongo on next task (jedis data is refreshed)
+        jedis.sadd(database + ":" + "markedForSave:bank", this.uuid.toString());
+        // Store the bank data
         String key = getJedisKey(this.uuid);
-        RunicCore.getRedisAPI().removeAllFromRedis(jedis, key); // removes all sub-keys
-        jedis.set(key + ":" + MAX_PAGE_INDEX_STRING, String.valueOf(this.maxPageIndex));
-        jedis.expire(key + ":" + MAX_PAGE_INDEX_STRING, RunicCore.getRedisAPI().getExpireTime());
+        RunicCore.getRedisAPI().removeAllFromRedis(jedis, database + ":" + key); // removes all sub-keys
+        jedis.set(database + ":" + key + ":" + MAX_PAGE_INDEX_STRING, String.valueOf(this.maxPageIndex));
+        jedis.expire(database + ":" + key + ":" + MAX_PAGE_INDEX_STRING, RunicCore.getRedisAPI().getExpireTime());
         Map<String, Map<String, String>> itemDataMap = new HashMap<>(); // from all bank pages
 
-        for (Map.Entry<Integer, ItemStack[]> page : bankInventories.entrySet()) {
-            ItemStack[] contents = page.getValue();
+        for (Map.Entry<Integer, RunicItem[]> page : pagesMap.entrySet()) {
+            RunicItem[] contents = page.getValue();
             for (int i = 0; i < contents.length; i++) {
                 if (contents[i] != null) {
-                    RunicItem runicItem = ItemManager.getRunicItemFromItemStack(contents[i]);
-                    if (runicItem != null)
-                        itemDataMap.put(page.getKey() + ":" + i, this.toMap(runicItem));
+                    itemDataMap.put(page.getKey() + ":" + i, this.toMap(contents[i]));
                 }
             }
         }
@@ -338,34 +168,47 @@ public class PlayerBankData implements SessionDataNested {
         if (!itemDataMap.isEmpty()) {
             for (String pageAndItem : itemDataMap.keySet()) {
                 if (itemDataMap.get(pageAndItem) == null) continue;
-                jedis.hmset(key + ":" + pageAndItem, itemDataMap.get(pageAndItem));
-                jedis.expire(key + ":" + pageAndItem, RunicCore.getRedisAPI().getExpireTime());
+                jedis.hmset(database + ":" + key + ":" + pageAndItem, itemDataMap.get(pageAndItem));
+                jedis.expire(database + ":" + key + ":" + pageAndItem, RunicCore.getRedisAPI().getExpireTime());
             }
         }
     }
 
-    @Override
-    public PlayerMongoData writeToMongo(MongoData mongoData, int... ints) {
-        PlayerMongoData playerMongoData = (PlayerMongoData) mongoData;
-        try {
-            if (playerMongoData.has("bank.pages"))
-                playerMongoData.remove("bank.pages");
-            playerMongoData.set("bank.max_page_index", maxPageIndex);
-            for (Map.Entry<Integer, ItemStack[]> page : bankInventories.entrySet()) {
-                ItemStack[] contents = page.getValue();
-                for (int i = 0; i < contents.length; i++) {
-                    if (contents[i] != null) {
-                        RunicItem runicItem = ItemManager.getRunicItemFromItemStack(contents[i]);
-                        if (runicItem != null) {
-                            runicItem.addToDataSection(playerMongoData, "bank.pages." + page.getKey() + "." + i);
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            RunicBank.getInstance().getLogger().warning("[ERROR]: There was a problem saving bank data to mongo!");
-            e.printStackTrace();
-        }
-        return playerMongoData;
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public ObjectId getId() {
+        return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
+
+    public int getMaxPageIndex() {
+        return maxPageIndex;
+    }
+
+    public void setMaxPageIndex(int maxPageIndex) {
+        this.maxPageIndex = maxPageIndex;
+    }
+
+    public HashMap<Integer, RunicItem[]> getPagesMap() {
+        return pagesMap;
+    }
+
+    public void setPagesMap(HashMap<Integer, RunicItem[]> pagesMap) {
+        this.pagesMap = pagesMap;
+    }
+
+    /**
+     * Ensures that our DTO is up-to-date before a save
+     *
+     * @param bankHolder the in-memory contents object
+     */
+    public void sync(BankHolder bankHolder) {
+        this.setMaxPageIndex(bankHolder.getMaxPageIndex());
+        this.setPagesMap(bankHolder.getRunicItemContents());
     }
 }

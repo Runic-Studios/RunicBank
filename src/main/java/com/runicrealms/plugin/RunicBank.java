@@ -1,8 +1,12 @@
 package com.runicrealms.plugin;
 
+import com.runicrealms.libs.taskchain.BukkitTaskChainFactory;
+import com.runicrealms.libs.taskchain.TaskChain;
+import com.runicrealms.libs.taskchain.TaskChainFactory;
+import com.runicrealms.plugin.api.RunicBankAPI;
 import com.runicrealms.plugin.listener.BankClickListener;
 import com.runicrealms.plugin.listener.BankNPCListener;
-import com.runicrealms.plugin.listener.PlayerJoinListener;
+import com.runicrealms.plugin.model.MongoTask;
 import com.runicrealms.runicrestart.RunicRestart;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -10,41 +14,34 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.HashSet;
 
 public final class RunicBank extends JavaPlugin implements Listener {
-
     private static RunicBank plugin;
-    private static BankManager bankManager;
+    private static TaskChainFactory taskChainFactory;
+    private static RunicBankAPI runicBankAPI;
     private static HashSet<Integer> bankNPCs;
+    private static MongoTask mongoTask;
 
     public static RunicBank getInstance() {
         return plugin;
     }
 
-    public static BankManager getBankManager() {
-        return bankManager;
+    public static RunicBankAPI getAPI() {
+        return runicBankAPI;
     }
 
-    @Override
-    public void onEnable() {
+    public static HashSet<Integer> getBankNPCs() {
+        return bankNPCs;
+    }
 
-        plugin = this;
-        bankManager = new BankManager();
-        getLogger().info("§aRunic§6Bank §ahas been enabled.");
+    public static MongoTask getMongoTask() {
+        return mongoTask;
+    }
 
-        // load config defaults
-        getConfig().options().copyDefaults(true);
-        saveConfig();
+    public static <T> TaskChain<T> newChain() {
+        return taskChainFactory.newChain();
+    }
 
-        // register events
-        getServer().getPluginManager().registerEvents(new BankClickListener(), this);
-        getServer().getPluginManager().registerEvents(new BankNPCListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
-        getServer().getPluginManager().registerEvents(bankManager, this);
-        getServer().getPluginManager().registerEvents(this, this);
-
-        // initialize NPCs
-        initializeBankNPCs();
-
-        RunicRestart.getAPI().markPluginLoaded("bank");
+    public static <T> TaskChain<T> newSharedChain(String name) {
+        return taskChainFactory.newSharedChain(name);
     }
 
     // todo: move to config
@@ -70,14 +67,36 @@ public final class RunicBank extends JavaPlugin implements Listener {
         bankNPCs.add(500); // frost
     }
 
-    public static HashSet<Integer> getBankNPCs() {
-        return bankNPCs;
-    }
-
     @Override
     public void onDisable() {
         plugin = null;
-        bankManager = null;
+        runicBankAPI = null;
+        mongoTask = null;
         bankNPCs = null;
+        taskChainFactory = null;
+    }
+
+    @Override
+    public void onEnable() {
+        plugin = this;
+        taskChainFactory = BukkitTaskChainFactory.create(this);
+        runicBankAPI = new BankManager();
+        mongoTask = new MongoTask();
+        getLogger().info("§aRunic§6Bank §ahas been enabled.");
+
+        // Load config defaults
+        getConfig().options().copyDefaults(true);
+        saveConfig();
+
+        // Register events
+        getServer().getPluginManager().registerEvents(new BankClickListener(), this);
+        getServer().getPluginManager().registerEvents(new BankNPCListener(), this);
+        getServer().getPluginManager().registerEvents(this, this);
+
+        // Initialize NPCs
+        initializeBankNPCs();
+
+        // Mark plugin loading complete
+        RunicRestart.getAPI().markPluginLoaded("bank");
     }
 }

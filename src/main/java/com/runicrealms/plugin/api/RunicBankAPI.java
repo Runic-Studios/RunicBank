@@ -1,26 +1,25 @@
 package com.runicrealms.plugin.api;
 
-import com.runicrealms.plugin.RunicBank;
+import com.runicrealms.plugin.model.BankHolder;
 import com.runicrealms.plugin.model.PlayerBankData;
-import org.bukkit.entity.Player;
 
+import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
-public class RunicBankAPI {
+public interface RunicBankAPI {
 
     /**
-     * A check to determine whether a player currently has their bank open
+     * Returns the map of UUID to InventoryHolder, which adds bank inventory data to memory
      *
-     * @param player to check
-     * @return true if bank is open
+     * @return the holder map
      */
-    public static boolean isViewingBank(Player player) {
-        if (RunicBank.getBankManager().getBankDataMap() == null) return false;
-        if (RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()) == null) return false;
-        if (RunicBank.getBankManager().getBankDataMap().get(player.getUniqueId()).getBankInv() == null) return false;
-        PlayerBankData playerBankData = RunicBank.getBankManager().loadPlayerBankData(player.getUniqueId());
-        return playerBankData.isOpened();
-    }
+    HashMap<UUID, BankHolder> getBankHolderMap();
+
+    /**
+     * @return A list of players who are locked out of the bank during saving and other mechanics
+     */
+    Set<UUID> getLockedOutPlayers();
 
     /**
      * A check to determine whether a player currently has their bank open
@@ -28,11 +27,21 @@ public class RunicBankAPI {
      * @param uuid of player to check
      * @return true if bank is open
      */
-    public static boolean isViewingBank(UUID uuid) {
-        if (RunicBank.getBankManager().getBankDataMap() == null) return false;
-        if (RunicBank.getBankManager().getBankDataMap().get(uuid) == null) return false;
-        if (RunicBank.getBankManager().getBankDataMap().get(uuid).getBankInv() == null) return false;
-        PlayerBankData playerBankData = RunicBank.getBankManager().loadPlayerBankData(uuid);
-        return playerBankData.isOpened();
-    }
+    boolean isViewingBank(UUID uuid);
+
+    /**
+     * Loads the player bank data ASYNC.
+     * Loads from redis (if it can), otherwise falls back to MongoDB or creates a new document.
+     *
+     * @param uuid of the player
+     * @return their bank data object
+     */
+    PlayerBankData loadPlayerBankData(UUID uuid);
+
+    /**
+     * Opens the bank for the player
+     *
+     * @param uuid of the player
+     */
+    void openBank(UUID uuid);
 }
