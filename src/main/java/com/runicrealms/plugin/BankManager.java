@@ -27,6 +27,7 @@ import java.util.*;
 import static com.runicrealms.plugin.model.MongoTask.CONSOLE_LOG;
 
 public class BankManager implements Listener, RunicBankAPI {
+    private static final int BANK_SAVE_PERIOD = 30;
     // For storing bank inventories during runtime
     private final HashMap<UUID, BankHolder> bankHolderMap = new HashMap<>();
     // Prevent players from accessing bank during save
@@ -34,6 +35,7 @@ public class BankManager implements Listener, RunicBankAPI {
 
     public BankManager() {
         Bukkit.getServer().getPluginManager().registerEvents(this, RunicBank.getInstance());
+        startBankSaveTask();
     }
 
     /**
@@ -146,9 +148,23 @@ public class BankManager implements Listener, RunicBankAPI {
      */
     @EventHandler(priority = EventPriority.NORMAL)
     public void onLoadedQuit(CharacterQuitEvent event) {
+        saveBank(event.getPlayer());
+    }
+
+    /**
+     * Saves all marked players to mongo on server shutdown as a bulk operation
+     */
+    @EventHandler(priority = EventPriority.LOW)
+    public void onMongoSave(MongoSaveEvent event) {
+        // Cancel the task timer
+        RunicBank.getMongoTask().getTask().cancel();
+        // Manually save all data (flush players marked for save)
+        RunicBank.getMongoTask().saveAllToMongo(() -> event.markPluginSaved("bank"));
+    }
+
+    private void saveBank(Player player) {
         // Since we lazy-load banks on open, we can ignore players who didn't interact with the bank
-        if (!bankHolderMap.containsKey(event.getPlayer().getUniqueId())) return;
-        Player player = event.getPlayer();
+        if (!bankHolderMap.containsKey(player.getUniqueId())) return;
         UUID uuid = player.getUniqueId();
         TaskChain<?> chain = RunicBank.newChain();
         chain
@@ -169,14 +185,16 @@ public class BankManager implements Listener, RunicBankAPI {
     }
 
     /**
-     * Saves all marked players to mongo on server shutdown as a bulk operation
+     * Periodic task to save player banks
      */
-    @EventHandler(priority = EventPriority.LOW)
-    public void onMongoSave(MongoSaveEvent event) {
-        // Cancel the task timer
-        RunicBank.getMongoTask().getTask().cancel();
-        // Manually save all data (flush players marked for save)
-        RunicBank.getMongoTask().saveAllToMongo(() -> event.markPluginSaved("bank"));
+    private void startBankSaveTask() {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(RunicCore.getInstance(), () -> {
+            for (UUID uuid : RunicCore.getCharacterAPI().getLoadedCharacters()) {
+                Player player = Bukkit.getPlayer(uuid);
+                if (player == null) continue; // Player not online
+                saveBank(player);
+            }
+        }, 0, BANK_SAVE_PERIOD * 20L);
     }
 
 }
