@@ -32,6 +32,17 @@ public class BankClickListener implements Listener {
         if (inventoryHolder == null) return;
         if (!uuid.equals(inventoryHolder.getUuid())) return;
 
+        // Disable certain click types to prevent dupes
+        switch (event.getAction()) {
+            case CLONE_STACK:
+            case MOVE_TO_OTHER_INVENTORY:
+            case COLLECT_TO_CURSOR:
+                event.setCancelled(true);
+                break;
+            default:
+                break;
+        }
+
         // Handle blocked items
         if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
             RunicItem runicItem = RunicItemsAPI.getRunicItemFromItemStack(event.getCurrentItem());
