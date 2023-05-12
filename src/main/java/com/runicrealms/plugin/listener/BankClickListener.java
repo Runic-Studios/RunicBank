@@ -1,5 +1,6 @@
 package com.runicrealms.plugin.listener;
 
+import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.model.BankHolder;
 import com.runicrealms.runicitems.RunicItemsAPI;
 import com.runicrealms.runicitems.item.RunicItem;
@@ -75,6 +76,7 @@ public class BankClickListener implements Listener {
         if (!uuid.equals(bankHolder.getUuid())) return;
         bankHolder.setOpen(false);
         bankHolder.savePage(); // Updates the current page in from the ui in memory
+        RunicBank.getAPI().saveBank(player);
     }
 
 }

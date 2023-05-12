@@ -27,15 +27,13 @@ import java.util.*;
 import static com.runicrealms.plugin.model.MongoTask.CONSOLE_LOG;
 
 public class BankManager implements Listener, RunicBankAPI {
-    private static final int BANK_SAVE_PERIOD = 30;
     // For storing bank inventories during runtime
     private final HashMap<UUID, BankHolder> bankHolderMap = new HashMap<>();
     // Prevent players from accessing bank during save
-    private final Set<UUID> lockedOutPlayers = new HashSet<>(); //
+    private final Set<UUID> lockedOutPlayers = new HashSet<>();
 
     public BankManager() {
         Bukkit.getServer().getPluginManager().registerEvents(this, RunicBank.getInstance());
-        startBankSaveTask();
     }
 
     /**
@@ -117,6 +115,7 @@ public class BankManager implements Listener, RunicBankAPI {
         Player player = Bukkit.getPlayer(uuid);
         if (player == null) return;
         if (lockedOutPlayers.contains(uuid)) {
+            player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
             player.sendMessage(ChatColor.YELLOW + "Your bank is saving! Try again in a moment.");
             return;
         }
@@ -143,12 +142,37 @@ public class BankManager implements Listener, RunicBankAPI {
         }
     }
 
+    @Override
+    public void saveBank(Player player) {
+        // Since we lazy-load banks on open, we can ignore players who didn't interact with the bank
+        if (!bankHolderMap.containsKey(player.getUniqueId())) return;
+        lockedOutPlayers.add(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+        TaskChain<?> chain = RunicBank.newChain();
+        chain
+                .asyncFirst(() -> loadPlayerBankData(uuid))
+                .abortIfNull(CONSOLE_LOG, player, "RunicBank failed to save on quit!")
+                .sync(playerBankData -> {
+                    // Sync current bank to object retrieved from Redis/Mongo (ensure they match)
+                    playerBankData.sync(bankHolderMap.get(uuid));
+                    return playerBankData;
+                })
+                .asyncLast(playerBankData -> {
+                    try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
+                        playerBankData.writeToJedis(jedis);
+                    }
+                    lockedOutPlayers.remove(player.getUniqueId());
+                })
+                .execute();
+    }
+
     /**
      * Save bank data to redis on character logout ASYNC
      */
     @EventHandler(priority = EventPriority.NORMAL)
     public void onLoadedQuit(CharacterQuitEvent event) {
         saveBank(event.getPlayer());
+        bankHolderMap.remove(event.getPlayer().getUniqueId());
     }
 
     /**
@@ -160,41 +184,6 @@ public class BankManager implements Listener, RunicBankAPI {
         RunicBank.getMongoTask().getTask().cancel();
         // Manually save all data (flush players marked for save)
         RunicBank.getMongoTask().saveAllToMongo(() -> event.markPluginSaved("bank"));
-    }
-
-    private void saveBank(Player player) {
-        // Since we lazy-load banks on open, we can ignore players who didn't interact with the bank
-        if (!bankHolderMap.containsKey(player.getUniqueId())) return;
-        UUID uuid = player.getUniqueId();
-        TaskChain<?> chain = RunicBank.newChain();
-        chain
-                .asyncFirst(() -> loadPlayerBankData(uuid))
-                .abortIfNull(CONSOLE_LOG, player, "RunicBank failed to save on quit!")
-                .sync(playerBankData -> {
-                    // Sync current bank to object retrieved from Redis/Mongo (ensure they match)
-                    playerBankData.sync(bankHolderMap.get(uuid));
-                    bankHolderMap.remove(uuid);
-                    return playerBankData;
-                })
-                .asyncLast(playerBankData -> {
-                    try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
-                        playerBankData.writeToJedis(jedis);
-                    }
-                })
-                .execute();
-    }
-
-    /**
-     * Periodic task to save player banks
-     */
-    private void startBankSaveTask() {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(RunicCore.getInstance(), () -> {
-            for (UUID uuid : RunicCore.getCharacterAPI().getLoadedCharacters()) {
-                Player player = Bukkit.getPlayer(uuid);
-                if (player == null) continue; // Player not online
-                saveBank(player);
-            }
-        }, 0, BANK_SAVE_PERIOD * 20L);
     }
 
 }

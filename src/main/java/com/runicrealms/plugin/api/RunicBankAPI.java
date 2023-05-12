@@ -2,6 +2,7 @@ package com.runicrealms.plugin.api;
 
 import com.runicrealms.plugin.model.BankHolder;
 import com.runicrealms.plugin.model.PlayerBankData;
+import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -44,4 +45,12 @@ public interface RunicBankAPI {
      * @param uuid of the player
      */
     void openBank(UUID uuid);
+
+    /**
+     * Saves the player's bank to Redis
+     *
+     * @param player to save
+     */
+    void saveBank(Player player);
+
 }
