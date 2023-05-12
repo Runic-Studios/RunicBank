@@ -141,7 +141,7 @@ public class PlayerBankData implements SessionDataMongo, SessionDataNested {
     @Override
     public Map<String, String> toMap(Object nestedObject) {
         RunicItem runicItem = (RunicItem) nestedObject;
-        return runicItem.addToJedis();
+        return runicItem.addToRedis();
     }
 
     @Override
