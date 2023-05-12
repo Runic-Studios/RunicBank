@@ -35,7 +35,6 @@ public class BankClickListener implements Listener {
         // Disable certain click types to prevent dupes
         switch (event.getAction()) {
             case CLONE_STACK:
-            case MOVE_TO_OTHER_INVENTORY:
             case COLLECT_TO_CURSOR:
                 event.setCancelled(true);
                 break;
