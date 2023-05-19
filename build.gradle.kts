@@ -12,6 +12,8 @@ dependencies {
     compileOnly(commonLibs.taskchain)
     compileOnly(commonLibs.jedis)
     compileOnly(commonLibs.springdatamongodb)
+    compileOnly(commonLibs.mongodbdrivercore)
+    compileOnly(commonLibs.mongodbdriversync)
     compileOnly(project(":Projects:Core"))
     compileOnly(project(":Projects:Items"))
     compileOnly(project(":Projects:Npcs"))
