@@ -9,6 +9,9 @@ version = "1.0-SNAPSHOT"
 dependencies {
     compileOnly(commonLibs.paper)
     compileOnly(commonLibs.spigot)
+    compileOnly(commonLibs.taskchain)
+    compileOnly(commonLibs.jedis)
+    compileOnly(commonLibs.springdatamongodb)
     compileOnly(project(":Projects:Core"))
     compileOnly(project(":Projects:Items"))
     compileOnly(project(":Projects:Npcs"))

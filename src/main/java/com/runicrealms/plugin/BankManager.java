@@ -1,6 +1,6 @@
 package com.runicrealms.plugin;
 
-import com.runicrealms.libs.taskchain.TaskChain;
+import co.aikar.taskchain.TaskChain;
 import com.runicrealms.plugin.api.RunicBankAPI;
 import com.runicrealms.plugin.character.api.CharacterQuitEvent;
 import com.runicrealms.plugin.database.event.MongoSaveEvent;
@@ -22,7 +22,12 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import redis.clients.jedis.Jedis;
 
-import java.util.*;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import static com.runicrealms.plugin.model.MongoTask.CONSOLE_LOG;
 

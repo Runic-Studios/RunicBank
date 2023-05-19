@@ -1,8 +1,8 @@
 package com.runicrealms.plugin;
 
-import com.runicrealms.libs.taskchain.BukkitTaskChainFactory;
-import com.runicrealms.libs.taskchain.TaskChain;
-import com.runicrealms.libs.taskchain.TaskChainFactory;
+import co.aikar.taskchain.BukkitTaskChainFactory;
+import co.aikar.taskchain.TaskChain;
+import co.aikar.taskchain.TaskChainFactory;
 import com.runicrealms.plugin.api.RunicBankAPI;
 import com.runicrealms.plugin.listener.BankClickListener;
 import com.runicrealms.plugin.listener.BankNPCListener;

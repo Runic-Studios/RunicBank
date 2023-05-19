@@ -1,6 +1,6 @@
 package com.runicrealms.plugin.model;
 
-import com.runicrealms.libs.taskchain.TaskChain;
+import co.aikar.taskchain.TaskChain;
 import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.RunicCore;
 import com.runicrealms.plugin.item.util.ItemRemover;

@@ -1,8 +1,8 @@
 package com.runicrealms.plugin.model;
 
+import co.aikar.taskchain.TaskChain;
+import co.aikar.taskchain.TaskChainAbortAction;
 import com.mongodb.bulk.BulkWriteResult;
-import com.runicrealms.libs.taskchain.TaskChain;
-import com.runicrealms.libs.taskchain.TaskChainAbortAction;
 import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.RunicCore;
 import com.runicrealms.plugin.api.MongoTaskOperation;
