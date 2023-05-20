@@ -4,9 +4,9 @@ import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainAbortAction;
 import com.mongodb.bulk.BulkWriteResult;
 import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.RunicCore;
-import com.runicrealms.plugin.api.MongoTaskOperation;
-import com.runicrealms.plugin.api.WriteCallback;
+import com.runicrealms.plugin.rdb.RunicDatabase;
+import com.runicrealms.plugin.rdb.api.MongoTaskOperation;
+import com.runicrealms.plugin.rdb.api.WriteCallback;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -81,10 +81,10 @@ public class MongoTask implements MongoTaskOperation {
      */
     @Override
     public BulkWriteResult sendBulkOperation() {
-        try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
+        try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
             Set<String> playersToSave = jedis.smembers(getJedisSet());
             if (playersToSave.isEmpty()) return BulkWriteResult.unacknowledged();
-            BulkOperations bulkOperations = RunicCore.getDataAPI().getMongoTemplate().bulkOps(BulkOperations.BulkMode.UNORDERED, getCollectionName());
+            BulkOperations bulkOperations = RunicDatabase.getAPI().getDataAPI().getMongoTemplate().bulkOps(BulkOperations.BulkMode.UNORDERED, getCollectionName());
             for (String uuidString : playersToSave) {
                 UUID uuid = UUID.fromString(uuidString);
                 // Load their data async with a future

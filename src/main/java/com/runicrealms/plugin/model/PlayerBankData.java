@@ -1,6 +1,8 @@
 package com.runicrealms.plugin.model;
 
-import com.runicrealms.plugin.RunicCore;
+import com.runicrealms.plugin.rdb.RunicDatabase;
+import com.runicrealms.plugin.rdb.model.SessionDataMongo;
+import com.runicrealms.plugin.rdb.model.SessionDataNested;
 import com.runicrealms.runicitems.DupeManager;
 import com.runicrealms.runicitems.config.ItemLoader;
 import com.runicrealms.runicitems.item.RunicItem;
@@ -65,7 +67,7 @@ public class PlayerBankData implements SessionDataMongo, SessionDataNested {
      * @param jedis the jedis resource
      */
     public PlayerBankData(UUID uuid, Jedis jedis) {
-        String database = RunicCore.getDataAPI().getMongoDatabase().getName();
+        String database = RunicDatabase.getAPI().getDataAPI().getMongoDatabase().getName();
         String parentKey = database + ":" + getJedisKey(uuid);
         this.uuid = uuid;
         this.maxPageIndex = Integer.parseInt(jedis.get(parentKey + ":maxPageIndex"));
@@ -112,7 +114,7 @@ public class PlayerBankData implements SessionDataMongo, SessionDataNested {
     @SuppressWarnings("unchecked")
     @Override
     public PlayerBankData addDocumentToMongo() {
-        MongoTemplate mongoTemplate = RunicCore.getDataAPI().getMongoTemplate();
+        MongoTemplate mongoTemplate = RunicDatabase.getAPI().getDataAPI().getMongoTemplate();
         return mongoTemplate.save(this);
     }
 
@@ -138,6 +140,10 @@ public class PlayerBankData implements SessionDataMongo, SessionDataNested {
         return uuid;
     }
 
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
     @Override
     public Map<String, String> toMap(Object nestedObject) {
         RunicItem runicItem = (RunicItem) nestedObject;
@@ -146,14 +152,14 @@ public class PlayerBankData implements SessionDataMongo, SessionDataNested {
 
     @Override
     public void writeToJedis(Jedis jedis, int... ignored) {
-        String database = RunicCore.getDataAPI().getMongoDatabase().getName();
+        String database = RunicDatabase.getAPI().getDataAPI().getMongoDatabase().getName();
         // Inform the server that this player should be saved to mongo on next task (jedis data is refreshed)
         jedis.sadd(database + ":" + "markedForSave:bank", this.uuid.toString());
         // Store the bank data
         String key = getJedisKey(this.uuid);
-        RunicCore.getRedisAPI().removeAllFromRedis(jedis, database + ":" + key); // removes all sub-keys
+        RunicDatabase.getAPI().getRedisAPI().removeAllFromRedis(jedis, database + ":" + key); // removes all sub-keys
         jedis.set(database + ":" + key + ":" + MAX_PAGE_INDEX_STRING, String.valueOf(this.maxPageIndex));
-        jedis.expire(database + ":" + key + ":" + MAX_PAGE_INDEX_STRING, RunicCore.getRedisAPI().getExpireTime());
+        jedis.expire(database + ":" + key + ":" + MAX_PAGE_INDEX_STRING, RunicDatabase.getAPI().getRedisAPI().getExpireTime());
         Map<String, Map<String, String>> itemDataMap = new HashMap<>(); // from all bank pages
 
         for (Map.Entry<Integer, RunicItem[]> page : pagesMap.entrySet()) {
@@ -169,13 +175,9 @@ public class PlayerBankData implements SessionDataMongo, SessionDataNested {
             for (String pageAndItem : itemDataMap.keySet()) {
                 if (itemDataMap.get(pageAndItem) == null) continue;
                 jedis.hmset(database + ":" + key + ":" + pageAndItem, itemDataMap.get(pageAndItem));
-                jedis.expire(database + ":" + key + ":" + pageAndItem, RunicCore.getRedisAPI().getExpireTime());
+                jedis.expire(database + ":" + key + ":" + pageAndItem, RunicDatabase.getAPI().getRedisAPI().getExpireTime());
             }
         }
-    }
-
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
     }
 
     public ObjectId getId() {

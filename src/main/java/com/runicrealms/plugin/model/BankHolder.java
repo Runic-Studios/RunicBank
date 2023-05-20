@@ -2,13 +2,13 @@ package com.runicrealms.plugin.model;
 
 import co.aikar.taskchain.TaskChain;
 import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.RunicCore;
-import com.runicrealms.plugin.item.util.ItemRemover;
+import com.runicrealms.plugin.rdb.RunicDatabase;
 import com.runicrealms.plugin.util.Util;
-import com.runicrealms.plugin.utilities.CurrencyUtil;
 import com.runicrealms.runicitems.RunicItems;
 import com.runicrealms.runicitems.RunicItemsAPI;
 import com.runicrealms.runicitems.item.RunicItem;
+import com.runicrealms.runicitems.util.CurrencyUtil;
+import com.runicrealms.runicitems.util.ItemUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -88,7 +88,7 @@ public class BankHolder implements InventoryHolder {
             }
             RunicBank.getAPI().getLockedOutPlayers().add(uuid);
             player.closeInventory();
-            ItemRemover.takeItem(player, CurrencyUtil.goldCoin(), price);
+            ItemUtils.takeItem(player, CurrencyUtil.goldCoin(), price);
             this.setMaxPageIndex(maxIndex + 1);
             memoryPagesMap.put(maxIndex + 1, new ItemStack[54]);
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
@@ -99,7 +99,7 @@ public class BankHolder implements InventoryHolder {
                     .abortIfNull(CONSOLE_LOG, player, "RunicBank failed to load on addPage()!")
                     .syncLast(playerBankData -> {
                         playerBankData.sync(RunicBank.getAPI().getBankHolderMap().get(uuid));
-                        try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
+                        try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
                             playerBankData.writeToJedis(jedis);
                         }
                         RunicBank.getAPI().getLockedOutPlayers().remove(uuid);
