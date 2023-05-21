@@ -5,6 +5,7 @@ plugins {
 
 group = "com.runicrealms.plugin"
 version = "1.0-SNAPSHOT"
+val artifactName = "bank"
 
 dependencies {
     compileOnly(commonLibs.paper)
@@ -30,12 +31,9 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "com.runicrealms.plugin"
-            artifactId = "bank"
+            artifactId = artifactName
             version = "1.0-SNAPSHOT"
             from(components["java"])
         }
     }
 }
-
-tasks.register("wrapper")
-tasks.register("prepareKotlinBuildScriptModel")

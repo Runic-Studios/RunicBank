@@ -2,7 +2,13 @@ name: RunicBank
 version: ${project.version}
 main: com.runicrealms.plugin.RunicBank
 api-version: 1.13
-depend: [ RunicCore, RunicRestart, RunicNpcs, RunicCommon, RunicDatabase, RunicItems ]
+depend:
+  - RunicCore
+  - RunicRestart
+  - RunicNpcs
+  - RunicCommon
+  - RunicDatabase
+  - RunicItems
 commands:
   runicbank:
     usage: /<commands>
