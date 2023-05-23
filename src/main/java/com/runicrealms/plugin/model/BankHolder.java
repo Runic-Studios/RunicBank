@@ -1,6 +1,7 @@
 package com.runicrealms.plugin.model;
 
 import co.aikar.taskchain.TaskChain;
+import co.aikar.taskchain.TaskChainAbortAction;
 import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.rdb.RunicDatabase;
 import com.runicrealms.plugin.util.Util;
@@ -22,8 +23,7 @@ import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
 import java.util.UUID;
-
-import static com.runicrealms.plugin.model.MongoTask.CONSOLE_LOG;
+import java.util.logging.Level;
 
 /**
  * A class to represent a banks in-memory inventory and pages
@@ -32,6 +32,11 @@ import static com.runicrealms.plugin.model.MongoTask.CONSOLE_LOG;
  * @author Skyfallin
  */
 public class BankHolder implements InventoryHolder {
+    public static final TaskChainAbortAction<Player, String, ?> CONSOLE_LOG = new TaskChainAbortAction<>() {
+        public void onAbort(TaskChain<?> chain, Player player, String message) {
+            Bukkit.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', message));
+        }
+    };
     private final UUID uuid;
     private final HashMap<Integer, ItemStack[]> memoryPagesMap;
     private Inventory inventory;
