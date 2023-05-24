@@ -7,7 +7,10 @@ import com.runicrealms.plugin.api.RunicBankAPI;
 import com.runicrealms.plugin.listener.BankClickListener;
 import com.runicrealms.plugin.listener.BankNPCListener;
 import com.runicrealms.plugin.model.MongoTask;
+import com.runicrealms.runicitems.RunicItemsAPI;
+import com.runicrealms.runicitems.api.AntiDupeInventoryHandler;
 import com.runicrealms.runicrestart.RunicRestart;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -98,5 +101,7 @@ public final class RunicBank extends JavaPlugin implements Listener {
 
         // Mark plugin loading complete
         RunicRestart.getAPI().markPluginLoaded("bank");
+
+        RunicItemsAPI.registerAntiDupeInventoryHandler(player -> RunicBank.getAPI().isViewingBank(player.getUniqueId()));
     }
 }

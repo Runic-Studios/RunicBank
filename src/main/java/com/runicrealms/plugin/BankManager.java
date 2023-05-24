@@ -2,12 +2,13 @@ package com.runicrealms.plugin;
 
 import co.aikar.taskchain.TaskChain;
 import com.runicrealms.plugin.api.RunicBankAPI;
-import com.runicrealms.plugin.character.api.CharacterQuitEvent;
-import com.runicrealms.plugin.database.event.MongoSaveEvent;
 import com.runicrealms.plugin.listener.BankNPCListener;
 import com.runicrealms.plugin.model.BankHolder;
-import com.runicrealms.plugin.model.CharacterField;
 import com.runicrealms.plugin.model.PlayerBankData;
+import com.runicrealms.plugin.rdb.RunicDatabase;
+import com.runicrealms.plugin.rdb.event.CharacterQuitEvent;
+import com.runicrealms.plugin.rdb.event.MongoSaveEvent;
+import com.runicrealms.plugin.rdb.model.CharacterField;
 import com.runicrealms.runicitems.item.RunicItem;
 import org.bson.types.ObjectId;
 import org.bukkit.Bukkit;
@@ -21,7 +22,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import redis.clients.jedis.Jedis;
-
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +50,7 @@ public class BankManager implements Listener, RunicBankAPI {
      * @return a PlayerBankData object if it is found in redis
      */
     public PlayerBankData checkRedisForBankData(UUID uuid, Jedis jedis) {
-        String database = RunicCore.getDataAPI().getMongoDatabase().getName();
+        String database = RunicDatabase.getAPI().getDataAPI().getMongoDatabase().getName();
         if (jedis.exists(database + ":" + PlayerBankData.getJedisKey(uuid) + ":" + PlayerBankData.MAX_PAGE_INDEX_STRING)) {
             return new PlayerBankData(uuid, jedis);
         }
@@ -77,7 +77,7 @@ public class BankManager implements Listener, RunicBankAPI {
 
     @Override
     public PlayerBankData loadPlayerBankData(UUID uuid) {
-        try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
+        try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
             // Step 1: Check if bank data exists in redis
             PlayerBankData playerBankData = checkRedisForBankData(uuid, jedis);
             if (playerBankData != null) return playerBankData;
@@ -85,12 +85,12 @@ public class BankManager implements Listener, RunicBankAPI {
         // Step 2: Check the mongo database
         Query query = new Query();
         query.addCriteria(Criteria.where(CharacterField.PLAYER_UUID.getField()).is(uuid));
-        MongoTemplate mongoTemplate = RunicCore.getDataAPI().getMongoTemplate();
+        MongoTemplate mongoTemplate = RunicDatabase.getAPI().getDataAPI().getMongoTemplate();
         List<PlayerBankData> results = mongoTemplate.find(query, PlayerBankData.class);
         if (results.size() > 0) {
             PlayerBankData result = results.get(0);
             result.setBankHolder(new BankHolder(result.getUuid(), result.getMaxPageIndex(), result.getPagesMap()));
-            try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
+            try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
                 result.writeToJedis(jedis);
             }
             return result;
@@ -109,7 +109,7 @@ public class BankManager implements Listener, RunicBankAPI {
         // Write new data to mongo
         playerBankData.addDocumentToMongo();
         // Write to redis
-        try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
+        try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
             playerBankData.writeToJedis(jedis);
         }
         return playerBankData;
@@ -163,7 +163,7 @@ public class BankManager implements Listener, RunicBankAPI {
                     return playerBankData;
                 })
                 .asyncLast(playerBankData -> {
-                    try (Jedis jedis = RunicCore.getRedisAPI().getNewJedisResource()) {
+                    try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
                         playerBankData.writeToJedis(jedis);
                     }
                     lockedOutPlayers.remove(player.getUniqueId());
