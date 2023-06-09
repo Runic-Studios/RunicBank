@@ -1,6 +1,7 @@
 package com.runicrealms.plugin;
 
 import co.aikar.taskchain.TaskChain;
+import co.aikar.taskchain.TaskChainAbortAction;
 import com.runicrealms.plugin.api.RunicBankAPI;
 import com.runicrealms.plugin.listener.BankNPCListener;
 import com.runicrealms.plugin.model.BankHolder;
@@ -30,9 +31,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import static com.runicrealms.plugin.model.MongoTask.CONSOLE_LOG;
-
 public class BankManager implements Listener, RunicBankAPI {
+    public static final TaskChainAbortAction<Player, String, ?> CONSOLE_LOG = new TaskChainAbortAction<Player, String, Object>() {
+        public void onAbort(TaskChain<?> chain, Player player, String message) {
+            Bukkit.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', message));
+        }
+    };
+    
     // For storing bank inventories during runtime
     private final HashMap<UUID, BankHolder> bankHolderMap = new HashMap<>();
     // Prevent players from accessing bank during save
