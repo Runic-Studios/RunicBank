@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import static com.runicrealms.plugin.model.MongoTask.CONSOLE_LOG;
 
@@ -147,8 +148,7 @@ public class BankManager implements Listener, RunicBankAPI {
         }
     }
 
-    @Override
-    public void saveBank(Player player) {
+    public void saveBank(Player player, boolean removePlayer) {
         // Since we lazy-load banks on open, we can ignore players who didn't interact with the bank
         if (!bankHolderMap.containsKey(player.getUniqueId())) return;
         lockedOutPlayers.add(player.getUniqueId());
@@ -165,10 +165,21 @@ public class BankManager implements Listener, RunicBankAPI {
                 .asyncLast(playerBankData -> {
                     try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
                         playerBankData.writeToJedis(jedis);
+                    } catch (Exception exception) {
+                        Bukkit.getLogger().log(Level.SEVERE, "Error saving bank for " + uuid + ":");
+                        exception.printStackTrace();
                     }
                     lockedOutPlayers.remove(player.getUniqueId());
+                    if (removePlayer) {
+                        bankHolderMap.remove(uuid);
+                    }
                 })
                 .execute();
+    }
+
+    @Override
+    public void saveBank(Player player) {
+        saveBank(player, false);
     }
 
     /**
@@ -176,8 +187,7 @@ public class BankManager implements Listener, RunicBankAPI {
      */
     @EventHandler(priority = EventPriority.NORMAL)
     public void onLoadedQuit(CharacterQuitEvent event) {
-        saveBank(event.getPlayer());
-        bankHolderMap.remove(event.getPlayer().getUniqueId());
+        saveBank(event.getPlayer(), true);
     }
 
     /**
