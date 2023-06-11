@@ -37,7 +37,7 @@ public class BankManager implements Listener, RunicBankAPI {
             Bukkit.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', message));
         }
     };
-    
+
     // For storing bank inventories during runtime
     private final HashMap<UUID, BankHolder> bankHolderMap = new HashMap<>();
     // Prevent players from accessing bank during save
@@ -87,38 +87,34 @@ public class BankManager implements Listener, RunicBankAPI {
             // Step 1: Check if bank data exists in redis
             PlayerBankData playerBankData = checkRedisForBankData(uuid, jedis);
             if (playerBankData != null) return playerBankData;
-        }
-        // Step 2: Check the mongo database
-        Query query = new Query();
-        query.addCriteria(Criteria.where(CharacterField.PLAYER_UUID.getField()).is(uuid));
-        MongoTemplate mongoTemplate = RunicDatabase.getAPI().getDataAPI().getMongoTemplate();
-        List<PlayerBankData> results = mongoTemplate.find(query, PlayerBankData.class);
-        if (results.size() > 0) {
-            PlayerBankData result = results.get(0);
-            result.setBankHolder(new BankHolder(result.getUuid(), result.getMaxPageIndex(), result.getPagesMap()));
-            try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
+            // Step 2: Check the mongo database
+            Query query = new Query();
+            query.addCriteria(Criteria.where(CharacterField.PLAYER_UUID.getField()).is(uuid));
+            MongoTemplate mongoTemplate = RunicDatabase.getAPI().getDataAPI().getMongoTemplate();
+            List<PlayerBankData> results = mongoTemplate.find(query, PlayerBankData.class);
+            if (results.size() > 0) {
+                PlayerBankData result = results.get(0);
+                result.setBankHolder(new BankHolder(result.getUuid(), result.getMaxPageIndex(), result.getPagesMap()));
                 result.writeToJedis(jedis);
+                return result;
             }
-            return result;
-        }
-        // Step 3: If no data is found, we create some data and save it to the collection
-        HashMap<Integer, RunicItem[]> pageContents = new HashMap<Integer, RunicItem[]>() {{
-            put(0, new RunicItem[54]);
-        }};
-        PlayerBankData playerBankData = new PlayerBankData
-                (
-                        new ObjectId(),
-                        uuid,
-                        0,
-                        pageContents
-                );
-        // Write new data to mongo
-        playerBankData.addDocumentToMongo();
-        // Write to redis
-        try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
+            // Step 3: If no data is found, we create some data and save it to the collection
+            HashMap<Integer, RunicItem[]> pageContents = new HashMap<Integer, RunicItem[]>() {{
+                put(0, new RunicItem[54]);
+            }};
+            playerBankData = new PlayerBankData
+                    (
+                            new ObjectId(),
+                            uuid,
+                            0,
+                            pageContents
+                    );
+            // Write new data to mongo
+            playerBankData.addDocumentToMongo();
+            // Write to redis
             playerBankData.writeToJedis(jedis);
+            return playerBankData;
         }
-        return playerBankData;
     }
 
     @Override
