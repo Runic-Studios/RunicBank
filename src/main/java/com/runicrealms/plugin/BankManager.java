@@ -138,6 +138,7 @@ public class BankManager implements BankWriteOperation, Listener, RunicBankAPI {
                 (
                         event.getPlayer().getUniqueId(),
                         bankHolderMap.get(uuid).getRunicItemContents(),
+                        bankHolderMap.get(uuid).getMaxPageIndex(),
                         true,
                         () -> bankHolderMap.remove(uuid)
                 );
@@ -158,6 +159,7 @@ public class BankManager implements BankWriteOperation, Listener, RunicBankAPI {
                     (
                             uuid,
                             bankHolder.getRunicItemContents(),
+                            bankHolder.getMaxPageIndex(),
                             false,
                             iterator::remove
                     );
@@ -170,7 +172,7 @@ public class BankManager implements BankWriteOperation, Listener, RunicBankAPI {
     }
 
     @Override
-    public void updatePlayerBankData(UUID uuid, Map<Integer, RunicItem[]> newValue, boolean removeLockout, WriteCallback callback) {
+    public void updatePlayerBankData(UUID uuid, Map<Integer, RunicItem[]> newValue, int maxPageIndex, boolean removeLockout, WriteCallback callback) {
         // Since we lazy-load banks on open, we can ignore players who didn't interact with the bank
         if (!bankHolderMap.containsKey(uuid)) return;
         lockedOutPlayers.add(uuid);
@@ -185,6 +187,7 @@ public class BankManager implements BankWriteOperation, Listener, RunicBankAPI {
                     // Define an update to set the specific field
                     Update update = new Update();
                     update.set("pagesMap", newValue);
+                    update.set("maxPageIndex", maxPageIndex);
 
                     // Execute the update operation
                     return mongoTemplate.updateFirst(query, update, PlayerBankData.class);

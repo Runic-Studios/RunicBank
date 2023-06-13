@@ -80,6 +80,7 @@ public class BankClickListener implements Listener {
                 (
                         player.getUniqueId(),
                         bankHolder.getRunicItemContents(),
+                        bankHolder.getMaxPageIndex(),
                         true,
                         () -> {
                         }

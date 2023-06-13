@@ -92,6 +92,7 @@ public class BankHolder implements InventoryHolder {
                     (
                             player.getUniqueId(),
                             RunicBank.getAPI().getBankHolderMap().get(player.getUniqueId()).getRunicItemContents(),
+                            RunicBank.getAPI().getBankHolderMap().get(player.getUniqueId()).getMaxPageIndex(),
                             true,
                             () -> {
 

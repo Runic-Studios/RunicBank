@@ -16,6 +16,6 @@ public interface BankWriteOperation {
      * @param removeLockout whether to unlock the bank when the save is complete (false when server shut down)
      * @param callback      a sync function to execute when TaskChain is complete
      */
-    void updatePlayerBankData(UUID uuid, Map<Integer, RunicItem[]> newValue, boolean removeLockout, WriteCallback callback);
+    void updatePlayerBankData(UUID uuid, Map<Integer, RunicItem[]> newValue, int maxPageIndex, boolean removeLockout, WriteCallback callback);
 
 }
