@@ -2,11 +2,13 @@ package com.runicrealms.plugin;
 
 import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainAbortAction;
+import com.runicrealms.plugin.api.BankWriteOperation;
 import com.runicrealms.plugin.api.RunicBankAPI;
 import com.runicrealms.plugin.listener.BankNPCListener;
 import com.runicrealms.plugin.model.BankHolder;
 import com.runicrealms.plugin.model.PlayerBankData;
 import com.runicrealms.plugin.rdb.RunicDatabase;
+import com.runicrealms.plugin.rdb.api.WriteCallback;
 import com.runicrealms.plugin.rdb.event.CharacterQuitEvent;
 import com.runicrealms.plugin.rdb.event.MongoSaveEvent;
 import com.runicrealms.plugin.rdb.model.CharacterField;
@@ -22,17 +24,18 @@ import org.bukkit.event.Listener;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import redis.clients.jedis.Jedis;
+import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class BankManager implements Listener, RunicBankAPI {
-    public static final TaskChainAbortAction<Player, String, ?> CONSOLE_LOG = new TaskChainAbortAction<Player, String, Object>() {
+public class BankManager implements BankWriteOperation, Listener, RunicBankAPI {
+    public static final TaskChainAbortAction<Player, String, ?> CONSOLE_LOG = new TaskChainAbortAction<>() {
         public void onAbort(TaskChain<?> chain, Player player, String message) {
             Bukkit.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', message));
         }
@@ -45,22 +48,6 @@ public class BankManager implements Listener, RunicBankAPI {
 
     public BankManager() {
         Bukkit.getServer().getPluginManager().registerEvents(this, RunicBank.getInstance());
-    }
-
-    /**
-     * Checks redis to see if the currently selected character's bank data is cached.
-     * And if it is, returns the PlayerBankData object
-     *
-     * @param uuid  of player to check
-     * @param jedis the jedis resource
-     * @return a PlayerBankData object if it is found in redis
-     */
-    public PlayerBankData checkRedisForBankData(UUID uuid, Jedis jedis) {
-        String database = RunicDatabase.getAPI().getDataAPI().getMongoDatabase().getName();
-        if (jedis.exists(database + ":" + PlayerBankData.getJedisKey(uuid) + ":" + PlayerBankData.MAX_PAGE_INDEX_STRING)) {
-            return new PlayerBankData(uuid, jedis);
-        }
-        return null;
     }
 
     @Override
@@ -83,38 +70,29 @@ public class BankManager implements Listener, RunicBankAPI {
 
     @Override
     public PlayerBankData loadPlayerBankData(UUID uuid) {
-        try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
-            // Step 1: Check if bank data exists in redis
-            PlayerBankData playerBankData = checkRedisForBankData(uuid, jedis);
-            if (playerBankData != null) return playerBankData;
-            // Step 2: Check the mongo database
-            Query query = new Query();
-            query.addCriteria(Criteria.where(CharacterField.PLAYER_UUID.getField()).is(uuid));
-            MongoTemplate mongoTemplate = RunicDatabase.getAPI().getDataAPI().getMongoTemplate();
-            List<PlayerBankData> results = mongoTemplate.find(query, PlayerBankData.class);
-            if (results.size() > 0) {
-                PlayerBankData result = results.get(0);
-                result.setBankHolder(new BankHolder(result.getUuid(), result.getMaxPageIndex(), result.getPagesMap()));
-                result.writeToJedis(jedis);
-                return result;
-            }
-            // Step 3: If no data is found, we create some data and save it to the collection
-            HashMap<Integer, RunicItem[]> pageContents = new HashMap<Integer, RunicItem[]>() {{
-                put(0, new RunicItem[54]);
-            }};
-            playerBankData = new PlayerBankData
-                    (
-                            new ObjectId(),
-                            uuid,
-                            0,
-                            pageContents
-                    );
-            // Write new data to mongo
-            playerBankData.addDocumentToMongo();
-            // Write to redis
-            playerBankData.writeToJedis(jedis);
-            return playerBankData;
+        // Step 1: Check the mongo database
+        Query query = new Query();
+        query.addCriteria(Criteria.where(CharacterField.PLAYER_UUID.getField()).is(uuid));
+        MongoTemplate mongoTemplate = RunicDatabase.getAPI().getDataAPI().getMongoTemplate();
+        PlayerBankData result = mongoTemplate.findOne(query, PlayerBankData.class);
+        if (result != null) {
+            result.setBankHolder(new BankHolder(result.getUuid(), result.getMaxPageIndex(), result.getPagesMap()));
+            return result;
         }
+        // Step 2: If no data is found, we create some data and save it to the collection
+        HashMap<Integer, RunicItem[]> pageContents = new HashMap<>() {{
+            put(0, new RunicItem[54]);
+        }};
+        PlayerBankData playerBankData = new PlayerBankData
+                (
+                        new ObjectId(),
+                        uuid,
+                        0,
+                        pageContents
+                );
+        // Write new data to mongo
+        playerBankData.addDocumentToMongo();
+        return playerBankData;
     }
 
     @Override
@@ -149,46 +127,19 @@ public class BankManager implements Listener, RunicBankAPI {
         }
     }
 
-    public void saveBank(Player player, boolean removePlayer) {
-        // Since we lazy-load banks on open, we can ignore players who didn't interact with the bank
-        if (!bankHolderMap.containsKey(player.getUniqueId())) return;
-        lockedOutPlayers.add(player.getUniqueId());
-        UUID uuid = player.getUniqueId();
-        TaskChain<?> chain = RunicBank.newChain();
-        chain
-                .asyncFirst(() -> loadPlayerBankData(uuid))
-                .abortIfNull(CONSOLE_LOG, player, "RunicBank failed to save on quit!")
-                .sync(playerBankData -> {
-                    // Sync current bank to object retrieved from Redis/Mongo (ensure they match)
-                    playerBankData.sync(bankHolderMap.get(uuid));
-                    return playerBankData;
-                })
-                .asyncLast(playerBankData -> {
-                    try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
-                        playerBankData.writeToJedis(jedis);
-                    } catch (Exception exception) {
-                        Bukkit.getLogger().log(Level.SEVERE, "Error saving bank for " + uuid + ":");
-                        exception.printStackTrace();
-                    }
-                    lockedOutPlayers.remove(player.getUniqueId());
-                    if (removePlayer) {
-                        bankHolderMap.remove(uuid);
-                    }
-                })
-                .execute();
-    }
-
-    @Override
-    public void saveBank(Player player) {
-        saveBank(player, false);
-    }
-
     /**
      * Save bank data to redis on character logout ASYNC
      */
     @EventHandler(priority = EventPriority.NORMAL)
     public void onLoadedQuit(CharacterQuitEvent event) {
-        saveBank(event.getPlayer(), true);
+        UUID uuid = event.getPlayer().getUniqueId();
+        RunicBank.getBankWriteOperation().updatePlayerBankData
+                (
+                        event.getPlayer().getUniqueId(),
+                        bankHolderMap.get(uuid).getRunicItemContents(),
+                        true,
+                        () -> bankHolderMap.remove(uuid)
+                );
     }
 
     /**
@@ -196,10 +147,55 @@ public class BankManager implements Listener, RunicBankAPI {
      */
     @EventHandler(priority = EventPriority.LOW)
     public void onMongoSave(MongoSaveEvent event) {
+        // Remove all currently viewing players
+        Iterator<Map.Entry<UUID, BankHolder>> iterator = bankHolderMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, BankHolder> entry = iterator.next();
+            UUID uuid = entry.getKey();
+            BankHolder bankHolder = entry.getValue();
+            RunicBank.getBankWriteOperation().updatePlayerBankData
+                    (
+                            uuid,
+                            bankHolder.getRunicItemContents(),
+                            false,
+                            iterator::remove
+                    );
+        }
+
         // Cancel the task timer
         RunicBank.getMongoTask().getTask().cancel();
         // Manually save all data (flush players marked for save)
         RunicBank.getMongoTask().saveAllToMongo(() -> event.markPluginSaved("bank"));
+    }
+
+    @Override
+    public void updatePlayerBankData(UUID uuid, Map<Integer, RunicItem[]> newValue, boolean removeLockout, WriteCallback callback) {
+        // Since we lazy-load banks on open, we can ignore players who didn't interact with the bank
+        if (!bankHolderMap.containsKey(uuid)) return;
+        lockedOutPlayers.add(uuid);
+        MongoTemplate mongoTemplate = RunicDatabase.getAPI().getDataAPI().getMongoTemplate();
+        TaskChain<?> chain = RunicBank.newChain();
+        chain
+                .asyncFirst(() -> {
+                    // Define a query to find the InventoryData for this player
+                    Query query = new Query();
+                    query.addCriteria(Criteria.where(CharacterField.PLAYER_UUID.getField()).is(uuid));
+
+                    // Define an update to set the specific field
+                    Update update = new Update();
+                    update.set("pagesMap", newValue);
+
+                    // Execute the update operation
+                    return mongoTemplate.updateFirst(query, update, PlayerBankData.class);
+                })
+                .abortIfNull(CONSOLE_LOG, null, "RunicBank failed to write to contentsMap!")
+                .syncLast(updateResult -> {
+                    if (removeLockout) {
+                        lockedOutPlayers.remove(uuid);
+                    }
+                    callback.onWriteComplete();
+                })
+                .execute();
     }
 
 }

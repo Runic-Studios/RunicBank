@@ -3,6 +3,7 @@ package com.runicrealms.plugin;
 import co.aikar.taskchain.BukkitTaskChainFactory;
 import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainFactory;
+import com.runicrealms.plugin.api.BankWriteOperation;
 import com.runicrealms.plugin.api.RunicBankAPI;
 import com.runicrealms.plugin.listener.BankClickListener;
 import com.runicrealms.plugin.listener.BankNPCListener;
@@ -20,6 +21,7 @@ public final class RunicBank extends JavaPlugin implements Listener {
     private static RunicBankAPI runicBankAPI;
     private static HashSet<Integer> bankNPCs;
     private static MongoTask mongoTask;
+    private static BankWriteOperation bankWriteOperation;
 
     public static RunicBank getInstance() {
         return plugin;
@@ -41,8 +43,8 @@ public final class RunicBank extends JavaPlugin implements Listener {
         return taskChainFactory.newChain();
     }
 
-    public static <T> TaskChain<T> newSharedChain(String name) {
-        return taskChainFactory.newSharedChain(name);
+    public static BankWriteOperation getBankWriteOperation() {
+        return bankWriteOperation;
     }
 
     // todo: move to config
@@ -76,13 +78,16 @@ public final class RunicBank extends JavaPlugin implements Listener {
         mongoTask = null;
         bankNPCs = null;
         taskChainFactory = null;
+        bankWriteOperation = null;
     }
 
     @Override
     public void onEnable() {
         plugin = this;
         taskChainFactory = BukkitTaskChainFactory.create(this);
-        runicBankAPI = new BankManager();
+        BankManager bankManager = new BankManager();
+        runicBankAPI = bankManager;
+        bankWriteOperation = bankManager;
         mongoTask = new MongoTask();
         getLogger().info("§aRunic§6Bank §ahas been enabled.");
 

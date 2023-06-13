@@ -21,8 +21,7 @@ public class BankClickListener implements Listener {
     @EventHandler
     public void clickEvent(InventoryClickEvent event) {
         // Verify that a player clicked
-        if (!(event.getWhoClicked() instanceof Player)) return;
-        Player player = (Player) event.getWhoClicked();
+        if (!(event.getWhoClicked() instanceof Player player)) return;
         UUID uuid = player.getUniqueId();
         if (event.getClickedInventory() == null) return;
 
@@ -34,12 +33,9 @@ public class BankClickListener implements Listener {
 
         // Disable certain click types to prevent dupes
         switch (event.getAction()) {
-            case CLONE_STACK:
-            case COLLECT_TO_CURSOR:
-                event.setCancelled(true);
-                break;
-            default:
-                break;
+            case CLONE_STACK, COLLECT_TO_CURSOR -> event.setCancelled(true);
+            default -> {
+            }
         }
 
         // Handle blocked items
@@ -59,15 +55,9 @@ public class BankClickListener implements Listener {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
                 event.setCancelled(true);
                 switch (event.getSlot()) {
-                    case 6:
-                        inventoryHolder.addPage(player.getUniqueId(), event.getCurrentItem().getType());
-                        break;
-                    case 7:
-                        inventoryHolder.prevPage(player.getUniqueId());
-                        break;
-                    case 8:
-                        inventoryHolder.nextPage(player.getUniqueId());
-                        break;
+                    case 6 -> inventoryHolder.addPage(player.getUniqueId(), event.getCurrentItem().getType());
+                    case 7 -> inventoryHolder.prevPage(player.getUniqueId());
+                    case 8 -> inventoryHolder.nextPage(player.getUniqueId());
                 }
             }
         }
@@ -86,7 +76,14 @@ public class BankClickListener implements Listener {
         if (!uuid.equals(bankHolder.getUuid())) return;
         bankHolder.setOpen(false);
         bankHolder.savePage(); // Updates the current page in from the ui in memory
-        RunicBank.getAPI().saveBank(player);
+        RunicBank.getBankWriteOperation().updatePlayerBankData
+                (
+                        player.getUniqueId(),
+                        bankHolder.getRunicItemContents(),
+                        true,
+                        () -> {
+                        }
+                );
     }
 
 }

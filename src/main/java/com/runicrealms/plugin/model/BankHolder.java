@@ -1,11 +1,7 @@
 package com.runicrealms.plugin.model;
 
-import co.aikar.taskchain.TaskChain;
-import co.aikar.taskchain.TaskChainAbortAction;
 import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.rdb.RunicDatabase;
 import com.runicrealms.plugin.util.Util;
-import com.runicrealms.runicitems.RunicItems;
 import com.runicrealms.runicitems.RunicItemsAPI;
 import com.runicrealms.runicitems.item.RunicItem;
 import com.runicrealms.runicitems.util.CurrencyUtil;
@@ -19,11 +15,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 
 /**
  * A class to represent a banks in-memory inventory and pages
@@ -32,13 +27,8 @@ import java.util.logging.Level;
  * @author Skyfallin
  */
 public class BankHolder implements InventoryHolder {
-    public static final TaskChainAbortAction<Player, String, ?> CONSOLE_LOG = new TaskChainAbortAction<>() {
-        public void onAbort(TaskChain<?> chain, Player player, String message) {
-            Bukkit.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', message));
-        }
-    };
     private final UUID uuid;
-    private final HashMap<Integer, ItemStack[]> memoryPagesMap;
+    private final Map<Integer, ItemStack[]> memoryPagesMap;
     private Inventory inventory;
     private String title;
     private int currentPage = 0;
@@ -52,7 +42,7 @@ public class BankHolder implements InventoryHolder {
      * @param maxPageIndex from their data (how many bank pages?)
      * @param pagesMap     a map from redis/mongo with the contents on each paeg
      */
-    public BankHolder(UUID uuid, int maxPageIndex, HashMap<Integer, RunicItem[]> pagesMap) {
+    public BankHolder(UUID uuid, int maxPageIndex, Map<Integer, RunicItem[]> pagesMap) {
         this.uuid = uuid;
         this.maxPageIndex = maxPageIndex;
         this.title = ChatColor.translateAlternateColorCodes('&', "&aBank &7pg. [&f" + (currentPage + 1) + "&7/" + (maxPageIndex + 1) + "]");
@@ -98,18 +88,15 @@ public class BankHolder implements InventoryHolder {
             memoryPagesMap.put(maxIndex + 1, new ItemStack[54]);
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
             player.sendMessage(ChatColor.GREEN + "You purchased a new bank page!");
-            TaskChain<?> chain = RunicItems.newChain();
-            chain
-                    .asyncFirst(() -> RunicBank.getAPI().loadPlayerBankData(uuid))
-                    .abortIfNull(CONSOLE_LOG, player, "RunicBank failed to load on addPage()!")
-                    .syncLast(playerBankData -> {
-                        playerBankData.sync(RunicBank.getAPI().getBankHolderMap().get(uuid));
-                        try (Jedis jedis = RunicDatabase.getAPI().getRedisAPI().getNewJedisResource()) {
-                            playerBankData.writeToJedis(jedis);
-                        }
-                        RunicBank.getAPI().getLockedOutPlayers().remove(uuid);
-                    })
-                    .execute();
+            RunicBank.getBankWriteOperation().updatePlayerBankData
+                    (
+                            player.getUniqueId(),
+                            RunicBank.getAPI().getBankHolderMap().get(player.getUniqueId()).getRunicItemContents(),
+                            true,
+                            () -> {
+
+                            }
+                    );
         }
     }
 
@@ -186,17 +173,13 @@ public class BankHolder implements InventoryHolder {
         this.maxPageIndex = maxPageIndex;
     }
 
-    public HashMap<Integer, ItemStack[]> getMemoryPagesMap() {
-        return memoryPagesMap;
-    }
-
     /**
      * Converts an array of ItemStacks into RunicItems
      *
-     * @return an array of runic item to be saved in redis/mongo
+     * @return a map of runic item to be saved in redis/mongo
      */
-    public HashMap<Integer, RunicItem[]> getRunicItemContents() {
-        HashMap<Integer, RunicItem[]> pagesMap = new HashMap<>();
+    public Map<Integer, RunicItem[]> getRunicItemContents() {
+        Map<Integer, RunicItem[]> pagesMap = new HashMap<>();
         for (Integer key : memoryPagesMap.keySet()) {
             pagesMap.put(key, new RunicItem[54]);
             for (int i = 9; i < memoryPagesMap.get(key).length; ++i) {
@@ -206,10 +189,6 @@ public class BankHolder implements InventoryHolder {
             }
         }
         return pagesMap;
-    }
-
-    public String getTitle() {
-        return title;
     }
 
     public UUID getUuid() {
