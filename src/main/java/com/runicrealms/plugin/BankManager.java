@@ -133,6 +133,7 @@ public class BankManager implements BankWriteOperation, Listener, RunicBankAPI {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onLoadedQuit(CharacterQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
+        if (bankHolderMap.get(uuid) == null) return;
         RunicBank.getBankWriteOperation().updatePlayerBankData
                 (
                         event.getPlayer().getUniqueId(),
