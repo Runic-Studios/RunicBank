@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Util {
-
-    private static final int MAX_PAGES = 5;
+public class BankUtil {
+    public static final int MAX_PRICE = 512;
+    private static final int MAX_PAGES = 10;
 
     public static ItemStack menuItem(Material material, String name, String lore) {
         ItemStack item = new ItemStack(material);

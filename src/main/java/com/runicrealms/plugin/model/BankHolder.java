@@ -1,7 +1,7 @@
 package com.runicrealms.plugin.model;
 
 import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.util.Util;
+import com.runicrealms.plugin.util.BankUtil;
 import com.runicrealms.runicitems.RunicItemsAPI;
 import com.runicrealms.runicitems.item.RunicItem;
 import com.runicrealms.runicitems.util.CurrencyUtil;
@@ -65,15 +65,18 @@ public class BankHolder implements InventoryHolder {
         if (player == null) return;
         int maxIndex = this.getMaxPageIndex();
         int price = (int) Math.pow(2, maxIndex + 6);
+        if (price > BankUtil.MAX_PRICE) {
+            price = BankUtil.MAX_PRICE;
+        }
 
         if (material != Material.SLIME_BALL) {
-            if ((maxIndex + 1) >= Util.getMaxPages()) {
+            if ((maxIndex + 1) >= BankUtil.getMaxPages()) {
                 player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
                 player.sendMessage(ChatColor.RED + "You already have the maximum number of pages!");
                 return;
             }
             // ask for confirmation
-            this.getInventory().setItem(6, Util.menuItem(Material.SLIME_BALL, "&a&lConfirm Purchase", "&7Purchase a new page for: &6&l" + price + "G"));
+            this.getInventory().setItem(6, BankUtil.menuItem(Material.SLIME_BALL, "&a&lConfirm Purchase", "&7Purchase a new page for: &6&l" + price + "G"));
         } else {
 
             if (!player.getInventory().contains(Material.GOLD_NUGGET, price)) {
@@ -116,14 +119,14 @@ public class BankHolder implements InventoryHolder {
         inventory.setContents(pageContents);
         // fill top row with black panes
         for (int i = 0; i < 4; i++) {
-            inventory.setItem(i, Util.menuItem(Material.BLACK_STAINED_GLASS_PANE, "&r", ""));
+            inventory.setItem(i, BankUtil.menuItem(Material.BLACK_STAINED_GLASS_PANE, "&r", ""));
         }
-        inventory.setItem(5, Util.menuItem(Material.BLACK_STAINED_GLASS_PANE, "&r", ""));
+        inventory.setItem(5, BankUtil.menuItem(Material.BLACK_STAINED_GLASS_PANE, "&r", ""));
         // menu buttons
-        inventory.setItem(4, Util.menuItem(Material.YELLOW_STAINED_GLASS_PANE, "&6&lBank of Alterra", "&7Welcome to your bank\n&aPage: &f" + (page + 1)));
-        inventory.setItem(6, Util.menuItem(Material.CYAN_STAINED_GLASS_PANE, "&a&lAdd Page &f&l[&a&l" + (this.getMaxPageIndex() + 1) + "&f&l/5]", "&7Purchase a new bank page"));
-        inventory.setItem(7, Util.menuItem(Material.GREEN_STAINED_GLASS_PANE, "&f&lPrevious Page", "&7Display the previous page in your bank"));
-        inventory.setItem(8, Util.menuItem(Material.RED_STAINED_GLASS_PANE, "&f&lNext Page", "&7Display the next page in your bank"));
+        inventory.setItem(4, BankUtil.menuItem(Material.YELLOW_STAINED_GLASS_PANE, "&6&lBank of Alterra", "&7Welcome to your bank\n&aPage: &f" + (page + 1)));
+        inventory.setItem(6, BankUtil.menuItem(Material.CYAN_STAINED_GLASS_PANE, "&a&lAdd Page &f&l[&a&l" + (maxPageIndex + 1) + "&f&l/" + BankUtil.getMaxPages() + "]", "&7Purchase a new bank page"));
+        inventory.setItem(7, BankUtil.menuItem(Material.GREEN_STAINED_GLASS_PANE, "&f&lPrevious Page", "&7Display the previous page in your bank"));
+        inventory.setItem(8, BankUtil.menuItem(Material.RED_STAINED_GLASS_PANE, "&f&lNext Page", "&7Display the next page in your bank"));
 
 //        for (int i = 9; i < 54; i++) {
 //            if (pageContents[i] != null) { // Ignore null items
