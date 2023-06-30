@@ -4,6 +4,7 @@ import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainAbortAction;
 import com.runicrealms.plugin.api.BankWriteOperation;
 import com.runicrealms.plugin.api.RunicBankAPI;
+import com.runicrealms.plugin.api.event.BankOpenEvent;
 import com.runicrealms.plugin.listener.BankNPCListener;
 import com.runicrealms.plugin.model.BankHolder;
 import com.runicrealms.plugin.model.PlayerBankData;
@@ -99,6 +100,14 @@ public class BankManager implements BankWriteOperation, Listener, RunicBankAPI {
     public void openBank(UUID uuid) {
         Player player = Bukkit.getPlayer(uuid);
         if (player == null) return;
+
+        BankOpenEvent bankOpenEvent = new BankOpenEvent(player);
+        Bukkit.getPluginManager().callEvent(bankOpenEvent);
+
+        if (bankOpenEvent.isCancelled()) {
+            return;
+        }
+
         if (lockedOutPlayers.contains(uuid)) {
             player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.5f, 1.0f);
             player.sendMessage(ChatColor.YELLOW + "Your bank is saving! Try again in a moment.");

@@ -2,7 +2,6 @@ package com.runicrealms.plugin.listener;
 
 import com.runicrealms.plugin.RunicBank;
 import com.runicrealms.plugin.api.NpcClickEvent;
-import com.runicrealms.plugin.api.event.BankOpenEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -39,13 +38,6 @@ public class BankNPCListener implements Listener {
         if (RunicBank.getAPI().isViewingBank(player.getUniqueId())) {
             player.playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.5f, 1.0f);
             player.sendMessage(ChatColor.RED + "The bank is already open!");
-            return;
-        }
-
-        BankOpenEvent bankOpenEvent = new BankOpenEvent(player);
-        Bukkit.getPluginManager().callEvent(bankOpenEvent);
-
-        if (bankOpenEvent.isCancelled()) {
             return;
         }
 
