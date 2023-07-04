@@ -20,6 +20,7 @@ public class BankNPCListener implements Listener {
 
     @EventHandler
     public void onRightClick(NpcClickEvent event) {
+        if(event.isCancelled()) return;
         if (databaseRequesters.contains(event.getPlayer().getUniqueId())) return;
         // Prevent players from spamming NPCs
         Player player = event.getPlayer();
