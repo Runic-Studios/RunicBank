@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class BankUtil {
     public static final int MAX_PRICE = 512;
-    private static final int MAX_PAGES = 10;
+    private static final int MAX_PAGES = 15;
 
     public static ItemStack menuItem(Material material, String name, String lore) {
         ItemStack item = new ItemStack(material);
