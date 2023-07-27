@@ -1,7 +1,7 @@
-package com.runicrealms.plugin.api;
+package com.runicrealms.plugin.bank.api;
 
-import com.runicrealms.plugin.model.BankHolder;
-import com.runicrealms.plugin.model.PlayerBankData;
+import com.runicrealms.plugin.bank.model.BankHolder;
+import com.runicrealms.plugin.bank.model.PlayerBankData;
 
 import java.util.HashMap;
 import java.util.Set;

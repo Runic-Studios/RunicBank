@@ -1,7 +1,7 @@
-package com.runicrealms.plugin.listener;
+package com.runicrealms.plugin.bank.listener;
 
-import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.api.NpcClickEvent;
+import com.runicrealms.plugin.bank.RunicBank;
+import com.runicrealms.plugin.npcs.api.NpcClickEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;

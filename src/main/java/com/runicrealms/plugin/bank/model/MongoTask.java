@@ -1,9 +1,9 @@
-package com.runicrealms.plugin.model;
+package com.runicrealms.plugin.bank.model;
 
 import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainAbortAction;
 import com.mongodb.bulk.BulkWriteResult;
-import com.runicrealms.plugin.RunicBank;
+import com.runicrealms.plugin.bank.RunicBank;
 import com.runicrealms.plugin.rdb.RunicDatabase;
 import com.runicrealms.plugin.rdb.api.MongoTaskOperation;
 import com.runicrealms.plugin.rdb.api.WriteCallback;

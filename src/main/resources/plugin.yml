@@ -1,6 +1,6 @@
 name: RunicBank
 version: ${project.version}
-main: com.runicrealms.plugin.RunicBank
+main: com.runicrealms.plugin.bank.RunicBank
 api-version: 1.13
 depend:
   - RunicCore

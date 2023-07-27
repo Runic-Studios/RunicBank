@@ -1,15 +1,15 @@
-package com.runicrealms.plugin;
+package com.runicrealms.plugin.bank;
 
 import co.aikar.taskchain.BukkitTaskChainFactory;
 import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainFactory;
-import com.runicrealms.plugin.api.BankWriteOperation;
-import com.runicrealms.plugin.api.RunicBankAPI;
-import com.runicrealms.plugin.listener.BankClickListener;
-import com.runicrealms.plugin.listener.BankNPCListener;
-import com.runicrealms.plugin.model.MongoTask;
-import com.runicrealms.runicitems.RunicItemsAPI;
-import com.runicrealms.runicrestart.RunicRestart;
+import com.runicrealms.plugin.bank.api.BankWriteOperation;
+import com.runicrealms.plugin.bank.api.RunicBankAPI;
+import com.runicrealms.plugin.bank.listener.BankClickListener;
+import com.runicrealms.plugin.bank.listener.BankNPCListener;
+import com.runicrealms.plugin.bank.model.MongoTask;
+import com.runicrealms.plugin.runicitems.RunicItemsAPI;
+import com.runicrealms.plugin.runicrestart.RunicRestart;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 

@@ -1,4 +1,4 @@
-package com.runicrealms.plugin.api.event;
+package com.runicrealms.plugin.bank.api.event;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;

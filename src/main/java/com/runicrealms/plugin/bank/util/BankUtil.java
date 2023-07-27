@@ -1,4 +1,4 @@
-package com.runicrealms.plugin.util;
+package com.runicrealms.plugin.bank.util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

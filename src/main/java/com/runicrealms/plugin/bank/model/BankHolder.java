@@ -1,11 +1,11 @@
-package com.runicrealms.plugin.model;
+package com.runicrealms.plugin.bank.model;
 
-import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.util.BankUtil;
-import com.runicrealms.runicitems.RunicItemsAPI;
-import com.runicrealms.runicitems.item.RunicItem;
-import com.runicrealms.runicitems.util.CurrencyUtil;
-import com.runicrealms.runicitems.util.ItemUtils;
+import com.runicrealms.plugin.bank.RunicBank;
+import com.runicrealms.plugin.bank.util.BankUtil;
+import com.runicrealms.plugin.runicitems.RunicItemsAPI;
+import com.runicrealms.plugin.runicitems.item.RunicItem;
+import com.runicrealms.plugin.runicitems.util.CurrencyUtil;
+import com.runicrealms.plugin.runicitems.util.ItemUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

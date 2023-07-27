@@ -1,8 +1,8 @@
-package com.runicrealms.plugin.model;
+package com.runicrealms.plugin.bank.model;
 
 import com.runicrealms.plugin.rdb.RunicDatabase;
 import com.runicrealms.plugin.rdb.model.SessionDataMongo;
-import com.runicrealms.runicitems.item.RunicItem;
+import com.runicrealms.plugin.runicitems.item.RunicItem;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;

@@ -1,7 +1,7 @@
-package com.runicrealms.plugin.api;
+package com.runicrealms.plugin.bank.api;
 
 import com.runicrealms.plugin.rdb.api.WriteCallback;
-import com.runicrealms.runicitems.item.RunicItem;
+import com.runicrealms.plugin.runicitems.item.RunicItem;
 
 import java.util.Map;
 import java.util.UUID;

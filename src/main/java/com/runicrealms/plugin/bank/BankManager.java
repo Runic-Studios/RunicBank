@@ -1,19 +1,19 @@
-package com.runicrealms.plugin;
+package com.runicrealms.plugin.bank;
 
 import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainAbortAction;
-import com.runicrealms.plugin.api.BankWriteOperation;
-import com.runicrealms.plugin.api.RunicBankAPI;
-import com.runicrealms.plugin.api.event.BankOpenEvent;
-import com.runicrealms.plugin.listener.BankNPCListener;
-import com.runicrealms.plugin.model.BankHolder;
-import com.runicrealms.plugin.model.PlayerBankData;
+import com.runicrealms.plugin.bank.api.BankWriteOperation;
+import com.runicrealms.plugin.bank.api.RunicBankAPI;
+import com.runicrealms.plugin.bank.api.event.BankOpenEvent;
+import com.runicrealms.plugin.bank.listener.BankNPCListener;
+import com.runicrealms.plugin.bank.model.PlayerBankData;
+import com.runicrealms.plugin.bank.model.BankHolder;
 import com.runicrealms.plugin.rdb.RunicDatabase;
 import com.runicrealms.plugin.rdb.api.WriteCallback;
 import com.runicrealms.plugin.rdb.event.CharacterQuitEvent;
 import com.runicrealms.plugin.rdb.event.MongoSaveEvent;
 import com.runicrealms.plugin.rdb.model.CharacterField;
-import com.runicrealms.runicitems.item.RunicItem;
+import com.runicrealms.plugin.runicitems.item.RunicItem;
 import org.bson.types.ObjectId;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

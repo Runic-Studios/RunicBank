@@ -1,10 +1,10 @@
-package com.runicrealms.plugin.listener;
+package com.runicrealms.plugin.bank.listener;
 
-import com.runicrealms.plugin.RunicBank;
-import com.runicrealms.plugin.model.BankHolder;
-import com.runicrealms.runicitems.RunicItemsAPI;
-import com.runicrealms.runicitems.item.RunicItem;
-import com.runicrealms.runicitems.item.stats.RunicItemTag;
+import com.runicrealms.plugin.bank.RunicBank;
+import com.runicrealms.plugin.bank.model.BankHolder;
+import com.runicrealms.plugin.runicitems.RunicItemsAPI;
+import com.runicrealms.plugin.runicitems.item.RunicItem;
+import com.runicrealms.plugin.runicitems.item.stats.RunicItemTag;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
