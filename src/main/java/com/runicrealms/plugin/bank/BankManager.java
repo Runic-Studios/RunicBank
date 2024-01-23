@@ -11,7 +11,6 @@ import com.runicrealms.plugin.bank.model.BankHolder;
 import com.runicrealms.plugin.rdb.RunicDatabase;
 import com.runicrealms.plugin.rdb.api.WriteCallback;
 import com.runicrealms.plugin.rdb.event.CharacterQuitEvent;
-import com.runicrealms.plugin.rdb.event.MongoSaveEvent;
 import com.runicrealms.plugin.rdb.model.CharacterField;
 import com.runicrealms.plugin.runicitems.item.RunicItem;
 import org.bson.types.ObjectId;
